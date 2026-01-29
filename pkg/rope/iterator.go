@@ -33,13 +33,17 @@ type frame struct {
 }
 
 // NewIterator creates a new iterator starting at the beginning of the rope.
+// The iterator starts positioned before the first character.
+// Call Next() to advance to the first character.
 func (r *Rope) NewIterator() *Iterator {
 	it := &Iterator{
-		rope:     r,
-		position: 0,
-		stack:    make([]frame, 0, 16),
+		rope:      r,
+		position:  0,
+		runePos:   -1, // Start before first character
+		stack:     make([]frame, 0, 16),
+		exhausted: (r == nil || r.Length() == 0),
 	}
-	it.moveToFirst()
+	// Don't call moveToFirst() - let Next() handle initialization
 	return it
 }
 
@@ -100,6 +104,17 @@ func (it *Iterator) loadCurrentLeaf() {
 func (it *Iterator) Next() bool {
 	if it.exhausted {
 		return false
+	}
+
+	// First call - initialize iterator to first character
+	if it.runePos == -1 {
+		it.moveToFirst()
+		if it.exhausted {
+			return false
+		}
+		// moveToFirst() positioned us at first character, update position
+		it.position = 1
+		return true
 	}
 
 	// Move to next rune in current leaf
@@ -282,6 +297,16 @@ func (it *Iterator) Slice(length int) string {
 func (it *Iterator) Peek() (rune, bool) {
 	if it.exhausted || it.position >= it.rope.Length() {
 		return 0, false
+	}
+
+	// Initialize iterator if this is the first operation
+	if it.runePos == -1 {
+		it.moveToFirst()
+		if it.exhausted {
+			return 0, false
+		}
+		// Don't advance position - we're just peeking
+		return it.Current(), true
 	}
 
 	// Save current state
