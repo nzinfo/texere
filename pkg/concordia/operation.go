@@ -181,7 +181,8 @@ func (op *Operation) ApplyToDocument(doc document.Document) (document.Document, 
 
 		case DeleteOp:
 			// Delete characters (skip over them)
-			docIndex += int(v)
+			// DeleteOp stores negative value, so we add the negative
+			docIndex += -int(v)  // Same as v.Length()
 		}
 	}
 

@@ -28,19 +28,20 @@ func randomString(n int) string {
 // Corresponds to ot.js test/helpers.js: randomOperation
 func randomOperation(str string) *Operation {
 	builder := NewBuilder()
-	pos := 0
 
-	for pos < len(str) {
-		left := len(str) - pos
-		if left == 0 {
+	// Track position in the document as we apply the operation
+	// This is a simplified version - ot.js uses operation.baseLength
+	docPos := 0
+	originalLen := len(str)
+
+	for docPos < originalLen {
+		left := originalLen - docPos
+		if left <= 0 {
 			break
 		}
 
-		// Random length between 1 and min(left-1, 20)
-		maxLen := min(left-1, 20)
-		if maxLen < 1 {
-			maxLen = 1
-		}
+		// Random length between 1 and min(left, 20)
+		maxLen := min(left, 20)
 		l := 1 + rand.Intn(maxLen)
 
 		r := rand.Float64()
@@ -50,15 +51,15 @@ func randomOperation(str string) *Operation {
 			// Insert
 			s := randomString(l)
 			builder.Insert(s)
-			pos += len(s)
+			// docPos doesn't change for insert (we insert at current position)
 		case r < 0.4:
 			// Delete
 			builder.Delete(l)
-			pos += l
+			docPos += l
 		default:
 			// Retain
 			builder.Retain(l)
-			pos += l
+			docPos += l
 		}
 	}
 

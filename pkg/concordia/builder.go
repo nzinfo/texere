@@ -142,6 +142,22 @@ func (b *OperationBuilder) Delete(n int) *OperationBuilder {
 	return b
 }
 
+// BaseLength returns the current baseLength of the operation being built.
+//
+// This is useful for validation and testing purposes.
+//
+// Returns:
+//   - the current baseLength
+//
+// Example:
+//
+//	builder := NewBuilder()
+//	builder.Retain(5)
+//	builder.BaseLength() // returns 5
+func (b *OperationBuilder) BaseLength() int {
+	return b.baseLength
+}
+
 // Build constructs an immutable operation from the builder.
 //
 // This method performs final optimization and creates an operation
