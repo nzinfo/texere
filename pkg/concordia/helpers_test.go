@@ -26,49 +26,49 @@ func randomString(n int) string {
 
 // randomOperation generates a random operation for testing.
 // Corresponds to ot.js test/helpers.js: randomOperation
+//
+// This function uses the exact logic from ot.js to ensure test compatibility.
+// It tracks operation.baseLength instead of document position to handle
+// Insert operations correctly (which don't advance the base length).
 func randomOperation(str string) *Operation {
-	builder := NewBuilder()
+	operation := NewOperation()
 
-	// Track position in the document as we apply the operation
-	// This is a simplified version - ot.js uses operation.baseLength
-	docPos := 0
-	originalLen := len(str)
-
-	for docPos < originalLen {
-		left := originalLen - docPos
-		if left <= 0 {
+	for {
+		left := len(str) - operation.BaseLength()
+		if left == 0 {
 			break
 		}
 
-		// Random length between 1 and min(left, 20)
-		maxLen := min(left, 20)
+		// Random length between 1 and min(left-1, 20), ensuring we don't consume all remaining chars
+		// This allows the loop to continue with more operations
+		maxLen := min(left-1, 20)
+		if maxLen < 1 {
+			maxLen = 1
+		}
 		l := 1 + rand.Intn(maxLen)
 
 		r := rand.Float64()
 
 		switch {
 		case r < 0.2:
-			// Insert
+			// Insert - doesn't change baseLength, so loop continues
 			s := randomString(l)
-			builder.Insert(s)
-			// docPos doesn't change for insert (we insert at current position)
+			operation.Insert(s)
 		case r < 0.4:
-			// Delete
-			builder.Delete(l)
-			docPos += l
+			// Delete - increases baseLength (consumes characters from base)
+			operation.Delete(l)
 		default:
-			// Retain
-			builder.Retain(l)
-			docPos += l
+			// Retain - increases baseLength
+			operation.Retain(l)
 		}
 	}
 
 	// 30% chance to insert at the end
 	if rand.Float64() < 0.3 {
-		builder.Insert(randomString(1 + rand.Intn(10)))
+		operation.Insert(randomString(1 + rand.Intn(10)))
 	}
 
-	return builder.Build()
+	return operation
 }
 
 // min returns the minimum of two integers.

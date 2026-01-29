@@ -50,6 +50,43 @@ func NewOperation() *Operation {
 	}
 }
 
+// Retain appends a retain operation to this operation.
+// This is a convenience method for test helpers.
+// For production code, use the Builder pattern instead.
+func (op *Operation) Retain(n int) *Operation {
+	if n == 0 {
+		return op
+	}
+	op.ops = append(op.ops, RetainOp(n))
+	op.baseLength += n
+	op.targetLength += n
+	return op
+}
+
+// Insert appends an insert operation to this operation.
+// This is a convenience method for test helpers.
+// For production code, use the Builder pattern instead.
+func (op *Operation) Insert(str string) *Operation {
+	if str == "" {
+		return op
+	}
+	op.ops = append(op.ops, InsertOp(str))
+	op.targetLength += len(str)
+	return op
+}
+
+// Delete appends a delete operation to this operation.
+// This is a convenience method for test helpers.
+// For production code, use the Builder pattern instead.
+func (op *Operation) Delete(n int) *Operation {
+	if n == 0 {
+		return op
+	}
+	op.ops = append(op.ops, DeleteOp(-n))
+	op.baseLength += n
+	return op
+}
+
 // BaseLength returns the length of the document this operation operates on.
 //
 // This is the length of the document before the operation is applied.
@@ -226,13 +263,15 @@ func (op *Operation) Invert(str string) *Operation {
 
 		case DeleteOp:
 			// Inverse of delete is insert
-			endIndex := strIndex + int(v)
+			// DeleteOp stores negative value, so negate it to get length
+			deleteLen := -int(v)
+			endIndex := strIndex + deleteLen
 			if endIndex > len(str) {
 				endIndex = len(str)
 			}
 			deletedStr := str[strIndex:endIndex]
 			inverse.Insert(deletedStr)
-			strIndex += int(v)
+			strIndex += deleteLen
 		}
 	}
 

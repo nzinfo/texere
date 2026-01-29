@@ -67,7 +67,6 @@ func TestOperation_Apply_Random(t *testing.T) {
 		str := randomString(50)
 		op := randomOperation(str)
 
-		assert.Equal(t, str, "", "random operation should match string length")
 		assert.Equal(t, len(str), op.BaseLength(), "base length should match string")
 
 		result, err := op.Apply(str)
