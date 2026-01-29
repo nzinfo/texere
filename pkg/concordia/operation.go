@@ -374,7 +374,10 @@ func (op *Operation) ShouldBeComposedWith(other *Operation) bool {
 
 	if IsDelete(simpleA) && IsDelete(simpleB) {
 		// Two ways to delete: backspace and delete key
-		return (startB-simpleB.Length() == startA) || startA == startB
+		// DeleteOp values are negative, so simpleB is negative (e.g., -3)
+		// In ot.js: startB - simpleB means startB - (-3) = startB + 3
+		// In Go: we need to negate the value to get the length
+		return (startB+simpleB.Length() == startA) || startA == startB
 	}
 
 	return false
