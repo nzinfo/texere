@@ -132,13 +132,13 @@ func (b *OperationBuilder) Delete(n int) *OperationBuilder {
 	if b.optimizeEnabled && len(b.ops) > 0 {
 		if lastDelete, ok := b.ops[len(b.ops)-1].(DeleteOp); ok {
 			b.ops[len(b.ops)-1] = lastDelete + DeleteOp(-n)
-			b.baseLength -= n
+			b.baseLength += n // FIX: baseLength should increase (consume chars)
 			return b
 		}
 	}
 
 	b.ops = append(b.ops, DeleteOp(-n))
-	b.baseLength -= n
+	b.baseLength += n // FIX: baseLength should increase (consume chars)
 	return b
 }
 
