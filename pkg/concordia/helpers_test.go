@@ -31,10 +31,10 @@ func randomString(n int) string {
 // It tracks operation.baseLength instead of document position to handle
 // Insert operations correctly (which don't advance the base length).
 func randomOperation(str string) *Operation {
-	operation := NewOperation()
+	builder := NewBuilder()
 
 	for {
-		left := len(str) - operation.BaseLength()
+		left := len(str) - builder.BaseLength()
 		if left == 0 {
 			break
 		}
@@ -53,22 +53,22 @@ func randomOperation(str string) *Operation {
 		case r < 0.2:
 			// Insert - doesn't change baseLength, so loop continues
 			s := randomString(l)
-			operation.Insert(s)
+			builder.Insert(s)
 		case r < 0.4:
 			// Delete - increases baseLength (consumes characters from base)
-			operation.Delete(l)
+			builder.Delete(l)
 		default:
 			// Retain - increases baseLength
-			operation.Retain(l)
+			builder.Retain(l)
 		}
 	}
 
 	// 30% chance to insert at the end
 	if rand.Float64() < 0.3 {
-		operation.Insert(randomString(1 + rand.Intn(10)))
+		builder.Insert(randomString(1 + rand.Intn(10)))
 	}
 
-	return operation
+	return builder.Build()
 }
 
 // min returns the minimum of two integers.
