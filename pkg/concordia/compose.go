@@ -33,6 +33,9 @@ func Compose(operation1, operation2 *Operation) (*Operation, error) {
 		return nil, errors.New("the base length of the second operation has to be the target length of the first operation")
 	}
 
+	// IMPORTANT: The Insert-Delete swap rule in Builder.Insert() ensures
+	// proper normalization, so we can use the regular builder with optimization.
+	// This merges adjacent operations of the same type for canonical form.
 	operation := NewBuilder()
 	ops1 := operation1.ops
 	ops2 := operation2.ops

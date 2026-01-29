@@ -41,6 +41,19 @@ func NewBuilder() *OperationBuilder {
 	}
 }
 
+// NewBuilderWithoutOpt creates a new operation builder with optimization disabled.
+//
+// This is used internally by Compose to ensure operation order is preserved.
+//
+// Returns:
+//   - a new OperationBuilder with optimization disabled
+func NewBuilderWithoutOpt() *OperationBuilder {
+	return &OperationBuilder{
+		ops:            make([]Op, 0, 16),
+		optimizeEnabled: false,
+	}
+}
+
 // Retain appends a retain operation to the builder.
 //
 // Retain operations skip over characters without modifying them.
@@ -93,6 +106,22 @@ func (b *OperationBuilder) Retain(n int) *OperationBuilder {
 func (b *OperationBuilder) Insert(str string) *OperationBuilder {
 	if str == "" {
 		return b // Skip no-op
+	}
+
+	// Check if the last operation is a Delete (ot.js normalization rule)
+	// When Insert follows Delete, we need to ensure the Insert comes first
+	// This makes operations with the same effect equal in respect to equals()
+	if len(b.ops) > 0 {
+		lastOp := b.ops[len(b.ops)-1]
+		if IsDelete(lastOp) {
+			// ot.js rule: insert after delete -> swap them
+			// Insert doesn't change baseLength, Delete does
+			b.ops = append(b.ops, InsertOp(str))
+			// Swap the last two operations
+			b.ops[len(b.ops)-2], b.ops[len(b.ops)-1] = b.ops[len(b.ops)-1], b.ops[len(b.ops)-2]
+			b.targetLength += len(str)
+			return b
+		}
 	}
 
 	// Optimization: merge with previous insert if possible

@@ -60,8 +60,10 @@ func TestBuilder_Complex(t *testing.T) {
 	assert.Equal(t, RetainOp(5), op.ops[0])
 	assert.Equal(t, InsertOp("Hello"), op.ops[1])
 	assert.Equal(t, RetainOp(3), op.ops[2])
-	assert.Equal(t, DeleteOp(-2), op.ops[3])
-	assert.Equal(t, InsertOp("World"), op.ops[4])
+	// NOTE: ot.js normalization rule swaps Insert after Delete
+	// So Insert("World") comes before Delete(2)
+	assert.Equal(t, InsertOp("World"), op.ops[3])
+	assert.Equal(t, DeleteOp(-2), op.ops[4])
 }
 
 // TestBuilder_Apply tests building and applying an operation.
