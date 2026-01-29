@@ -129,15 +129,19 @@ func collectChunks(n RopeNode, infos *[]ChunkInfo, byteIdx, charIdx, lineIdx *in
 		textLen := len(node.text)
 		charCount := runeCount(node.text)
 
-		*infos = append(*infos, ChunkInfo{
-			ByteIdx:   *byteIdx,
-			CharIdx:   *charIdx,
-			LineIdx:   *lineIdx,
-			ByteLen:   textLen,
-			CharLen:   charCount,
-			Text:      node.text,
-			IsEmpty:   textLen == 0,
-		})
+		// Skip empty leaf nodes to match ropey behavior
+		// Empty rope should have 0 chunks, not 1 empty chunk
+		if textLen > 0 {
+			*infos = append(*infos, ChunkInfo{
+				ByteIdx:   *byteIdx,
+				CharIdx:   *charIdx,
+				LineIdx:   *lineIdx,
+				ByteLen:   textLen,
+				CharLen:   charCount,
+				Text:      node.text,
+				IsEmpty:   textLen == 0,
+			})
+		}
 
 		*byteIdx += textLen
 		*charIdx += charCount
