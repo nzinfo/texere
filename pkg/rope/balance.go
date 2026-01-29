@@ -478,3 +478,45 @@ func (r *Rope) AutoBalance() *Rope {
 
 	return r.BalanceWithConfig(r.SuggestedConfig())
 }
+
+// LeafCount returns the number of leaf nodes in the rope tree.
+func (r *Rope) LeafCount() int {
+	if r == nil || r.root == nil {
+		return 0
+	}
+	return nodeLeafCount(r.root)
+}
+
+// nodeLeafCount recursively counts leaf nodes.
+func nodeLeafCount(node RopeNode) int {
+	if node == nil {
+		return 0
+	}
+	if node.IsLeaf() {
+		return 1
+	}
+
+	internal := node.(*InternalNode)
+	return nodeLeafCount(internal.left) + nodeLeafCount(internal.right)
+}
+
+// NodeCount returns the total number of nodes in the rope tree.
+func (r *Rope) NodeCount() int {
+	if r == nil || r.root == nil {
+		return 0
+	}
+	return nodeCountTotal(r.root)
+}
+
+// nodeCountTotal recursively counts all nodes.
+func nodeCountTotal(node RopeNode) int {
+	if node == nil {
+		return 0
+	}
+	if node.IsLeaf() {
+		return 1
+	}
+
+	internal := node.(*InternalNode)
+	return 1 + nodeCountTotal(internal.left) + nodeCountTotal(internal.right)
+}
