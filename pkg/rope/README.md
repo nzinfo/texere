@@ -1,6 +1,8 @@
-# Rope Package
+# Rope Package for Go
 
-A high-performance Rope data structure implementation in Go for efficient text editing operations.
+[![Go Reference](https://pkg.go.dev/badge/github.com/texere-rope/pkg/rope.svg)](https://pkg.go.dev/github.com/texere-rope/pkg/rope)
+
+A high-performance Rope data structure implementation in Go for efficient large text editing operations.
 
 ## Overview
 
@@ -374,8 +376,28 @@ Contributions are welcome! Please ensure:
 
 [Your License Here]
 
+## Acknowledgments
+
+This library is heavily inspired by and based on the design of the excellent **[ropey](https://github.com/cessen/ropey)** crate for Rust by **[Cessen](https://github.com/cessen)**.
+
+The ropey crate provides:
+- The core balanced binary tree algorithm
+- B-tree optimization strategies
+- Efficient UTF-8 handling patterns
+- The overall API design philosophy
+
+This Go implementation adapts those concepts for Go's idioms while maintaining the performance characteristics that make ropey excellent for text editing.
+
+### Similar Projects
+
+- **[ropey (Rust)](https://github.com/cessen/ropey)** - Original inspiration, used in the Helix editor
+- **[rope (C++)](https://github.com/zeux/rope)** - C++ implementation used in the Neovim editor
+- **[Rope (Swift)](https://github.com/apple/swift-rope)** - Swift implementation by Apple
+
 ## References
 
-- [Ropes: an Alternative to Strings](https://www.cs.rit.edu/~ats/books/ooc/html/ooc.html) - Boehm, Atkinson, and Plass (1995)
-- [Ropey (Rust)](https://github.com/cessen/ropey) - Helix's rope library
-- [Xi-Editor Rope](https://github.com/google/xi-editor) - Google's editor implementation
+- **[Ropes: an Alternative to Strings](https://www.cs.rit.edu/~ats/books/ooc/html/ooc.html)** - Boehm, Atkinson, and Plass (1995)
+  - Original paper introducing the Rope data structure
+- **[Ropey Documentation](https://docs.rs/ropey/)** - Rust crate that inspired this implementation
+- **[Xi-Editor Rope](https://github.com/google/xi-editor)** - Google's editor implementation
+- **[USAGE.md](USAGE.md)** - Comprehensive Chinese usage guide (中文使用指南)
