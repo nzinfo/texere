@@ -327,8 +327,9 @@ func BenchmarkCacheEfficiency_SequentialAccess(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		// Sequential access (cache-friendly)
+		// Rope length is ~800 chars (100 * "Chunk xx "), so use 80 char slices
 		for j := 0; j < 10; j++ {
-			_ = r.Slice(j*100, (j+1)*100)
+			_ = r.Slice(j*80, (j+1)*80)
 		}
 	}
 }
@@ -344,11 +345,12 @@ func BenchmarkCacheEfficiency_RandomAccess(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		// Random access (cache-unfriendly)
+		// Rope length is ~800 chars (100 * "Chunk xx "), stay within bounds
 		_ = r.Slice(100, 200)
 		_ = r.Slice(500, 600)
-		_ = r.Slice(1000, 1100)
+		_ = r.Slice(700, 750)
 		_ = r.Slice(100, 200)
-		_ = r.Slice(800, 900)
+		_ = r.Slice(600, 700)
 	}
 }
 
