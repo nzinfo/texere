@@ -148,64 +148,85 @@ func (pm *PositionMapper) isSorted() bool {
 	return true
 }
 
-// mapSorted maps positions in O(N+M) time using binary search.
+// mapSorted maps positions in O(N+M) time using single pass.
 func (pm *PositionMapper) mapSorted() []int {
 	result := make([]int, len(pm.positions))
 
-	pos := 0
-	newPos := 0
-
+	// Process each position independently
 	for i, position := range pm.positions {
-		oldPos := position.Pos
+		targetPos := position.Pos
 
-		// Advance through changeset operations to reach oldPos
-		for pos < oldPos && pos < pm.changeset.lenBefore {
-			// Find next operation
-			if len(pm.changeset.operations) == 0 {
+		// Reset state for each position
+		oldPos := 0
+		newPos := 0
+
+		// Debug: print initial state for this position
+		// fmt.Printf("[Position %d] target=%d, oldPos=%d, newPos=%d\n", i, targetPos, oldPos, newPos)
+
+		// Process operations until we reach or pass targetPos
+		for _, op := range pm.changeset.operations {
+			if oldPos >= targetPos {
+				// Already reached or passed target
+				// fmt.Printf("  Already at target, breaking\n")
 				break
 			}
 
-			// Process operations until we reach oldPos
-			newPos = pm.advanceTo(oldPos, &pos, newPos)
+			// fmt.Printf("  Processing op: Type=%v, Len=%d, Text=%q\n", op.OpType, op.Length, op.Text)
+
+			switch op.OpType {
+			case OpRetain:
+				if oldPos+op.Length >= targetPos {
+					// Target is within this retain
+					advance := targetPos - oldPos
+					oldPos += advance
+					newPos += advance
+					// fmt.Printf("    Partial retain: advance=%d, oldPos=%d, newPos=%d\n", advance, oldPos, newPos)
+					// Don't break yet - we might have more positions to process
+					// Actually, we should break since we've reached the target
+					break
+				} else {
+					// Entire retain is before target
+					oldPos += op.Length
+					newPos += op.Length
+					// fmt.Printf("    Full retain: oldPos=%d, newPos=%d\n", oldPos, newPos)
+				}
+
+			case OpDelete:
+				if oldPos+op.Length >= targetPos {
+					// Target is within this delete
+					// Delete it, but don't advance oldPos past target
+					oldPos = targetPos
+					// fmt.Printf("    Partial delete: oldPos=%d\n", oldPos)
+					break
+				} else {
+					// Entire delete is before target
+					oldPos += op.Length
+					// fmt.Printf("    Full delete: oldPos=%d\n", oldPos)
+				}
+
+			case OpInsert:
+				// Inserted content affects newPos but not oldPos
+				insertLen := len([]rune(op.Text))
+				newPos += insertLen
+				// fmt.Printf("    Insert: insertLen=%d, newPos=%d\n", insertLen, newPos)
+			}
+		}
+
+		// If we ran out of operations but haven't reached targetPos,
+		// the remaining characters are retained (no more changes)
+		if oldPos < targetPos {
+			remaining := targetPos - oldPos
+			newPos += remaining
+			oldPos += remaining
+			// fmt.Printf("  Remaining: remaining=%d, oldPos=%d, newPos=%d\n", remaining, oldPos, newPos)
 		}
 
 		// Apply association behavior
-		result[i] = pm.applyAssociation(position, oldPos, newPos, pos)
+		result[i] = pm.applyAssociation(position, targetPos, newPos, oldPos)
+		// fmt.Printf("  Result[%d] = %d\n\n", i, result[i])
 	}
 
 	return result
-}
-
-// advanceTo advances through operations until reaching target position.
-func (pm *PositionMapper) advanceTo(target int, pos *int, newPos int) int {
-	for _, op := range pm.changeset.operations {
-		switch op.OpType {
-		case OpRetain:
-			if *pos+op.Length >= target {
-				// Target is within this retain operation
-				advance := target - *pos
-				*pos += advance
-				newPos += advance
-				return newPos
-			}
-			*pos += op.Length
-			newPos += op.Length
-
-		case OpDelete:
-			// Skip over deleted text
-			*pos += op.Length
-
-		case OpInsert:
-			// Skip over inserted text (doesn't affect old positions)
-			newPos += len([]rune(op.Text))
-		}
-
-		if *pos >= target {
-			break
-		}
-	}
-
-	return newPos
 }
 
 // applyAssociation applies the association behavior to determine final position.

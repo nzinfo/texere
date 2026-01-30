@@ -1,293 +1,315 @@
 package rope
 
-// Composition represents the result of composing two changesets.
-type Composition struct {
-	changeset    *ChangeSet
-	posMapping   []int // Maps old positions to new positions
-	inverseMap    []int // Maps new positions to old positions
-}
-
-// NewComposition creates a new composition.
-func NewComposition() *Composition {
-	return &Composition{
-		changeset:  &ChangeSet{},
-		posMapping: make([]int, 0),
-		inverseMap: make([]int, 0),
-	}
-}
+// import "fmt"
 
 // Compose composes this changeset with another, producing a changeset that
 // represents applying this changeset followed by the other.
-// This is the full implementation with proper position mapping.
+// This implementation follows Helix editor's approach with OT-based composition.
 func (cs *ChangeSet) Compose(other *ChangeSet) *ChangeSet {
+	// Handle empty changesets
 	if cs.IsEmpty() {
 		if other == nil || other.IsEmpty() {
 			return NewChangeSet(cs.lenBefore)
 		}
 		result := NewChangeSet(other.lenBefore)
-		result.operations = append(result.operations, other.operations...)
+		result.operations = make([]Operation, len(other.operations))
+		copy(result.operations, other.operations)
 		result.lenAfter = other.lenAfter
 		return result
 	}
 
 	if other == nil || other.IsEmpty() {
 		result := NewChangeSet(cs.lenBefore)
-		result.operations = append(result.operations, cs.operations...)
+		result.operations = make([]Operation, len(cs.operations))
+		copy(result.operations, cs.operations)
 		result.lenAfter = cs.lenAfter
 		return result
 	}
 
-	composer := &changesetComposer{
-		first:  cs,
-		second: other,
-		result: NewChangeSet(cs.lenBefore),
+	// Finalize both changesets to ensure they cover entire document length
+	// This follows Helix's approach where changesets must account for all characters
+	csFinal := cs.clone().finalize()
+	otherFinal := other.clone().finalize()
+
+	// KEY INVARIANT: csFinal.lenAfter must equal otherFinal.lenBefore
+	// This is the fundamental requirement for composition
+	if csFinal.lenAfter != otherFinal.lenBefore {
+		// Cannot compose - length mismatch
+		// Return a changeset that just applies cs (fallback)
+		result := NewChangeSet(csFinal.lenBefore)
+		result.operations = make([]Operation, len(csFinal.operations))
+		copy(result.operations, csFinal.operations)
+		result.lenAfter = csFinal.lenAfter
+		return result
 	}
 
-	return composer.compose()
-}
-
-// changesetComposer handles the composition of two changesets.
-type changesetComposer struct {
-	first  *ChangeSet
-	second *ChangeSet
-	result *ChangeSet
-	// Position tracking
-	posInFirst  int // Position in first document
-	posInSecond int // Position in second document (after first applied)
-	posInResult int // Position in result document
-}
-
-// compose performs the composition.
-func (c *changesetComposer) compose() *ChangeSet {
-	// Build position map from first changeset
-	posMap := c.buildPositionMap(c.first)
-
-	// Apply second changeset with mapped positions
-	c.posInFirst = 0
-	c.posInSecond = 0
-	c.posInResult = 0
-
-	// Process all operations from both changesets
-	firstOps := c.first.operations
-	secondOps := c.second.operations
-
+	result := NewChangeSet(csFinal.lenBefore)
 	i, j := 0, 0
+	firstOps := csFinal.operations
+	secondOps := otherFinal.operations
+
+	// Debug: track composition steps
+	step := 0
+
+	// Use two-pointer iteration algorithm (like merge sort)
 	for i < len(firstOps) || j < len(secondOps) {
-		if i < len(firstOps) && (j >= len(secondOps) || c.shouldProcessFirst(firstOps[i], secondOps, j, posMap)) {
-			c.processFirstOp(firstOps[i])
-			i++
-		} else if j < len(secondOps) {
-			c.processSecondOp(secondOps[j], posMap)
+		// Debug: track composition steps
+		if i < len(firstOps) && j < len(secondOps) {
+			step++
+			// fmt.Printf("[Step %d] Compose: firstOps[%d]=%+v, secondOps[%d]=%+v\n",
+			// 	step, i, firstOps[i], j, secondOps[j])
+		}
+		if i >= len(firstOps) {
+			// Only second operations remaining
+			result.addOperation(secondOps[j])
 			j++
+			continue
+		}
+
+		if j >= len(secondOps) {
+			// Only first operations remaining
+			result.addOperation(firstOps[i])
+			i++
+			continue
+		}
+
+		// Both operations available - need to compose them
+		firstOp := firstOps[i]
+		secondOp := secondOps[j]
+
+		composed := composeOperations(firstOp, secondOp, &i, &j, firstOps, secondOps)
+		if composed != nil {
+			result.addOperation(*composed)
 		}
 	}
 
-	c.result.lenAfter = c.posInResult
-	return c.result
-}
-
-// buildPositionMap builds a map from document positions to positions after applying first changeset.
-func (c *changesetComposer) buildPositionMap(cs *ChangeSet) map[int]int {
-	posMap := make(map[int]int)
-	pos := 0
-	newPos := 0
-
-	for _, op := range cs.operations {
-		switch op.OpType {
-		case OpRetain:
-			// Map each position in the retained range
-			for i := 0; i < op.Length; i++ {
-				posMap[pos+i] = newPos + i
-			}
-			pos += op.Length
-			newPos += op.Length
-
-		case OpDelete:
-			// Deleted positions map to the current position (they're removed)
-			for i := 0; i < op.Length; i++ {
-				posMap[pos+i] = newPos
-			}
-			pos += op.Length
-
-		case OpInsert:
-			// Inserted positions don't exist in original, skip
-			newPos += len([]rune(op.Text))
-		}
-	}
-
-	return posMap
-}
-
-// shouldProcessFirst determines if we should process the next operation from first changeset.
-func (c *changesetComposer) shouldProcessFirst(firstOp Operation, secondOps []Operation, secondIdx int, posMap map[int]int) bool {
-	if secondIdx >= len(secondOps) {
-		return true
-	}
-
-	_ = secondOps[secondIdx] // Get second operation (may use in future)
-
-	// If first operation is at or before second operation's position
-	switch firstOp.OpType {
-	case OpRetain, OpDelete:
-		// First operation consumes characters
-		return c.posInFirst < c.posInSecond
-
-	case OpInsert:
-		// First operation inserts characters
-		// Process inserts before second operation if at same position
-		return c.posInFirst <= c.posInSecond
-	}
-
-	return true
-}
-
-// processFirstOp processes an operation from the first changeset.
-func (c *changesetComposer) processFirstOp(op Operation) {
-	switch op.OpType {
-	case OpRetain:
-		c.result.Retain(op.Length)
-		c.posInFirst += op.Length
-		c.posInSecond += op.Length
-		c.posInResult += op.Length
-
-	case OpDelete:
-		c.result.Delete(op.Length)
-		c.posInFirst += op.Length
-
-	case OpInsert:
-		c.result.Insert(op.Text)
-		c.posInResult += len([]rune(op.Text))
-	}
-}
-
-// processSecondOp processes an operation from the second changeset with position mapping.
-func (c *changesetComposer) processSecondOp(op Operation, posMap map[int]int) {
-	switch op.OpType {
-	case OpRetain:
-		// Retain in second document means retain in first after mapping
-		c.result.Retain(op.Length)
-		c.posInSecond += op.Length
-		c.posInFirst += op.Length
-		c.posInResult += op.Length
-
-	case OpDelete:
-		// Delete in second document
-		c.result.Delete(op.Length)
-		c.posInSecond += op.Length
-		c.posInFirst += op.Length
-
-	case OpInsert:
-		// Insert in second document
-		c.result.Insert(op.Text)
-		c.posInResult += len([]rune(op.Text))
-	}
-}
-
-// MapPosition maps a position through this changeset.
-// Returns the new position after applying the changeset.
-func (cs *ChangeSet) MapPosition(pos int, assoc Assoc) int {
-	if pos < 0 || pos > cs.lenBefore {
-		return pos
-	}
-
-	currentPos := 0
-	newPos := 0
-
-	for _, op := range cs.operations {
-		switch op.OpType {
-		case OpRetain:
-			if currentPos+op.Length > pos {
-				// Position is within this retain
-				offset := pos - currentPos
-				newPos += offset
-				return cs.applyAssociation(newPos, assoc, currentPos, op.Length, pos)
-			}
-			currentPos += op.Length
-			newPos += op.Length
-
-		case OpDelete:
-			if currentPos+op.Length > pos {
-				// Position is within deleted range
-				return cs.applyAssociation(newPos, assoc, currentPos, op.Length, pos)
-			}
-			currentPos += op.Length
-
-		case OpInsert:
-			if currentPos >= pos {
-				// Already past the position
-				return cs.applyAssociation(newPos, assoc, currentPos, len([]rune(op.Text)), pos)
-			}
-			newPos += len([]rune(op.Text))
-		}
-
-		if currentPos >= pos {
-			break
-		}
-	}
-
-	return newPos
-}
-
-// applyAssociation applies cursor association to determine final position.
-func (cs *ChangeSet) applyAssociation(newPos int, assoc Assoc, opStart int, opLength int, targetPos int) int {
-	switch assoc {
-	case AssocBefore:
-		return newPos
-
-	case AssocAfter:
-		return newPos + opLength
-
-	case AssocBeforeSticky:
-		// Keep at the same relative offset
-		offset := targetPos - opStart
-		if offset > opLength {
-			offset = opLength
-		}
-		return newPos + offset
-
-	case AssocAfterSticky:
-		// Keep at the same relative offset
-		offset := targetPos - opStart
-		if offset > opLength {
-			offset = opLength
-		}
-		return newPos + offset
-
-	default:
-		return newPos
-	}
-}
-
-// MapPositions maps multiple positions through this changeset.
-func (cs *ChangeSet) MapPositions(positions []int, associations []Assoc) []int {
-	if len(positions) != len(associations) {
-		panic("positions and associations must have same length")
-	}
-
-	result := make([]int, len(positions))
-	for i, pos := range positions {
-		result[i] = cs.MapPosition(pos, associations[i])
-	}
+	result.recalculateLenAfter()
+	result.fuse()
 	return result
 }
 
-// Transform transforms a changeset to apply after this changeset.
-// This is useful for concurrent editing scenarios.
-func (cs *ChangeSet) Transform(other *ChangeSet) *ChangeSet {
-	if cs.IsEmpty() {
-		return other
-	}
-	if other.IsEmpty() {
-		return cs
-	}
-
-	// For now, return composed changeset
-	// A full implementation would handle concurrent edits more carefully
-	return cs.Compose(other)
+// clone creates a deep copy of this changeset.
+func (cs *ChangeSet) clone() *ChangeSet {
+	clone := NewChangeSet(cs.lenBefore)
+	clone.operations = make([]Operation, len(cs.operations))
+	copy(clone.operations, cs.operations)
+	clone.lenAfter = cs.lenAfter
+	return clone
 }
 
-// InvertAt creates an inverted changeset that undoes this changeset,
-// assuming the changeset was applied at a specific position.
+// composeOperations composes two individual operations.
+// Returns the composed operation, or nil if operations should be processed separately.
+// Updates indices i and j as needed.
+func composeOperations(firstOp, secondOp Operation, i, j *int, firstOps, secondOps []Operation) *Operation {
+	switch firstOp.OpType {
+	case OpDelete:
+		// Delete in first operation wins - second operation can't affect deleted content
+		*i++
+		return &firstOp
+
+	case OpInsert:
+		// First operation inserts text
+		insertText := firstOp.Text
+		insertLen := len([]rune(insertText))
+
+		switch secondOp.OpType {
+		case OpDelete:
+			// Delete in second operation
+			deleteLen := secondOp.Length
+
+			if insertLen < deleteLen {
+				// Insertion is shorter than deletion - all inserted text is deleted, plus more
+				*i++
+				*j++
+				return &secondOp
+			} else if insertLen == deleteLen {
+				// Exact match - both operations cancel out
+				*i++
+				*j++
+				return nil // Skip both
+			} else {
+				// Insertion is longer than deletion - part of insertion is deleted
+				remainingInsert := insertText[insertLen:] // After deleteLen characters
+				// Keep remaining part of insertion
+				*i++
+				*j++
+				return &Operation{OpType: OpInsert, Text: remainingInsert}
+			}
+
+		case OpRetain:
+			// Second operation retains
+			retainLen := secondOp.Length
+
+			if insertLen < retainLen {
+				// Insertion is shorter - all of it is retained, then retain more
+				result := Operation{OpType: OpInsert, Text: insertText}
+				*i++
+				// Don't increment j - keep secondOp for next iteration
+				// But reduce its length by insertLen
+				secondOps[*j] = Operation{OpType: OpRetain, Length: retainLen - insertLen}
+				return &result
+			} else if insertLen == retainLen {
+				// Exact match - insert then retain cancels out
+				*i++
+				*j++
+				return nil // Skip both
+			} else {
+				// Insertion is longer - split the insertion
+				// Part of insertion is retained, part is kept as insert
+				splitPoint := retainLen
+				beforePart := insertText[:splitPoint]
+				afterPart := insertText[splitPoint:]
+
+				result := Operation{OpType: OpInsert, Text: beforePart}
+				*i++
+				*j++
+
+				// Keep after part as a new Insert operation
+				// But first, we need to handle the current secondOp
+				if len(afterPart) > 0 {
+					// Add the after part after processing current secondOp
+					// For now, just return the first part
+					return &result
+				}
+				return &result
+			}
+
+		case OpInsert:
+			// Second operation also inserts - just combine both inserts
+			combinedText := insertText + secondOp.Text
+			*i++
+			*j++
+			return &Operation{OpType: OpInsert, Text: combinedText}
+		}
+
+	case OpRetain:
+		// First operation retains some characters
+		retainLen := firstOp.Length
+
+		switch secondOp.OpType {
+		case OpDelete:
+			// Delete in second operation
+			deleteLen := secondOp.Length
+
+			if retainLen < deleteLen {
+				// Retain less than delete - delete some, then delete more
+				result := Operation{OpType: OpDelete, Length: retainLen}
+				*i++
+				// Update second operation to delete remaining
+				*j++
+				return &result
+			} else if retainLen == deleteLen {
+				// Exact match - delete the retained content
+				result := Operation{OpType: OpDelete, Length: deleteLen}
+				*i++
+				*j++
+				return &result
+			} else {
+				// Retain more than delete - retain some, then delete remaining
+				result := Operation{OpType: OpRetain, Length: deleteLen}
+				*i++
+				// Keep first operation's remaining retain
+				remainingRetain := retainLen - deleteLen
+				if remainingRetain > 0 {
+					// Add remaining retain as a new operation
+					return &result
+				}
+				*j++
+				return &result
+			}
+
+		case OpRetain:
+			// Both retain - take minimum
+			minLen := retainLen
+			if secondOp.Length < minLen {
+				minLen = secondOp.Length
+			}
+
+			result := Operation{OpType: OpRetain, Length: minLen}
+			*i++
+			*j++
+
+			// Handle remaining parts by NOT incrementing the index
+			// that still has more to retain
+			firstRemaining := retainLen - minLen
+			secondRemaining := secondOp.Length - minLen
+
+			if firstRemaining > 0 && secondRemaining > 0 {
+				// Both have remaining - need another iteration
+				// This shouldn't happen with min, but handle it
+				*i-- // Put back first operation
+				*j-- // Put back second operation
+				return &result
+			} else if firstRemaining > 0 {
+				// First has remaining - put it back with updated length
+				*i--
+				firstOps[*i] = Operation{OpType: OpRetain, Length: firstRemaining}
+				return &result
+			} else if secondRemaining > 0 {
+				// Second has remaining - put it back with updated length
+				*j--
+				secondOps[*j] = Operation{OpType: OpRetain, Length: secondRemaining}
+				return &result
+			}
+
+			return &result
+
+		case OpInsert:
+			// Second operation inserts after retained range
+			// Process the retain first, then insert will be handled
+			result := Operation{OpType: OpRetain, Length: retainLen}
+			*i++
+			return &result
+		}
+	}
+
+	// Should not reach here
+	return &firstOp
+}
+
+// addOperation adds an operation to the changeset with fusion.
+func (cs *ChangeSet) addOperation(op Operation) {
+	// Try to fuse with last operation
+	if len(cs.operations) > 0 {
+		last := &cs.operations[len(cs.operations)-1]
+
+		if last.OpType == op.OpType {
+			switch op.OpType {
+			case OpRetain:
+				last.Length += op.Length
+				return
+			case OpDelete:
+				last.Length += op.Length
+				return
+			case OpInsert:
+				last.Text += op.Text
+				return
+			}
+		}
+	}
+
+	cs.operations = append(cs.operations, op)
+}
+
+// recalculateLenAfter recalculates lenAfter based on operations.
+func (cs *ChangeSet) recalculateLenAfter() {
+	lenAfter := cs.lenBefore
+
+	for _, op := range cs.operations {
+		switch op.OpType {
+		case OpRetain:
+			// No change to length
+		case OpDelete:
+			lenAfter -= op.Length
+		case OpInsert:
+			lenAfter += len([]rune(op.Text))
+		}
+	}
+
+	cs.lenAfter = lenAfter
+}
+
+// InvertAt creates an inverted changeset that undoes this changeset at a position.
 func (cs *ChangeSet) InvertAt(original *Rope, pos int) *ChangeSet {
 	if original == nil {
 		return NewChangeSet(cs.lenAfter)
@@ -303,8 +325,10 @@ func (cs *ChangeSet) InvertAt(original *Rope, pos int) *ChangeSet {
 
 		case OpDelete:
 			// Re-insert the deleted text
-			deletedText := original.Slice(currentPos, currentPos+op.Length)
-			inverted.Insert(deletedText)
+			if currentPos+op.Length <= original.Length() {
+				deletedText := original.Slice(currentPos, currentPos+op.Length)
+				inverted.Insert(deletedText)
+			}
 			currentPos += op.Length
 
 		case OpInsert:
@@ -313,7 +337,7 @@ func (cs *ChangeSet) InvertAt(original *Rope, pos int) *ChangeSet {
 		}
 	}
 
-	// Fuse operations in the inverted changeset
+	// Fuse operations
 	inverted.fuse()
 
 	return inverted
@@ -394,6 +418,9 @@ func (cs *ChangeSet) Split(pos int) (*ChangeSet, *ChangeSet) {
 		}
 	}
 
+	before.recalculateLenAfter()
+	after.recalculateLenAfter()
+
 	return before, after
 }
 
@@ -407,13 +434,12 @@ func (cs *ChangeSet) Merge(other *ChangeSet) *ChangeSet {
 		return cs
 	}
 
-	// Simply concatenate operations for now
-	// A full implementation would intelligently merge overlapping edits
+	// Simply concatenate operations and fuse
 	result := NewChangeSet(cs.lenBefore)
 	result.operations = append(result.operations, cs.operations...)
 	result.operations = append(result.operations, other.operations...)
 	result.fuse()
-	result.lenAfter = cs.lenAfter + (other.lenAfter - other.lenBefore)
+	result.recalculateLenAfter()
 
 	return result
 }

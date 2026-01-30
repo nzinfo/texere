@@ -70,6 +70,30 @@ func (cs *ChangeSet) IsEmpty() bool {
 	return len(cs.operations) == 0
 }
 
+// finalize ensures the changeset covers the entire document by retaining
+// any remaining characters. This follows Helix's approach where changesets
+// must account for every character in the input document.
+func (cs *ChangeSet) finalize() *ChangeSet {
+	// Calculate how many characters have been processed
+	processed := 0
+	for _, op := range cs.operations {
+		switch op.OpType {
+		case OpRetain, OpDelete:
+			processed += op.Length
+		case OpInsert:
+			// Inserts don't consume input characters
+		}
+	}
+
+	// Retain remaining characters to reach lenBefore
+	remaining := cs.lenBefore - processed
+	if remaining > 0 {
+		cs.Retain(remaining)
+	}
+
+	return cs
+}
+
 // fuse merges consecutive operations of the same type for optimization.
 // This reduces the number of operations and improves performance.
 // For example: Insert("a") + Insert("b") → Insert("ab")
@@ -106,19 +130,33 @@ func (cs *ChangeSet) Apply(r *Rope) *Rope {
 		return r
 	}
 
+	// Check if document length matches changeset's expected input length
+	if r.Length() != cs.lenBefore {
+		// Length mismatch - cannot apply
+		return r
+	}
+
+	// Make a copy to finalize (don't modify original)
+	csCopy := NewChangeSet(cs.lenBefore)
+	csCopy.operations = make([]Operation, len(cs.operations))
+	copy(csCopy.operations, cs.operations)
+	csCopy.lenAfter = cs.lenAfter
+	csCopy.finalize()
+
 	// Fuse operations for optimization (reduces number of rope mutations)
-	cs.fuse()
+	csCopy.fuse()
 
 	result := r
 	pos := 0
 
-	for _, op := range cs.operations {
+	for _, op := range csCopy.operations {
 		switch op.OpType {
 		case OpRetain:
 			pos += op.Length
 
 		case OpDelete:
 			result = result.Delete(pos, pos+op.Length)
+			// Delete removes content, so pos stays the same
 
 		case OpInsert:
 			result = result.Insert(pos, op.Text)
@@ -229,4 +267,55 @@ func NewSelectionRange(anchor, cursor int) *Selection {
 		Anchor: anchor,
 		Cursor: cursor,
 	}
+}
+
+// MapPosition maps a single position through this changeset with the given association.
+func (cs *ChangeSet) MapPosition(pos int, assoc Assoc) int {
+	mapper := NewPositionMapper(cs)
+	mapper.AddPosition(pos, assoc)
+	result := mapper.Map()
+	if len(result) == 0 {
+		return pos
+	}
+	return result[0]
+}
+
+// MapPositions maps multiple positions through this changeset with the given associations.
+func (cs *ChangeSet) MapPositions(positions []int, associations []Assoc) []int {
+	mapper := NewPositionMapper(cs)
+	for i, pos := range positions {
+		assoc := AssocBefore
+		if i < len(associations) {
+			assoc = associations[i]
+		}
+		mapper.AddPosition(pos, assoc)
+	}
+	return mapper.Map()
+}
+
+// Transform transforms this changeset to apply after another changeset.
+// This is used for operational transformation in concurrent editing.
+func (cs *ChangeSet) Transform(other *ChangeSet) *ChangeSet {
+	if other == nil || other.IsEmpty() {
+		result := NewChangeSet(cs.lenBefore)
+		result.operations = make([]Operation, len(cs.operations))
+		copy(result.operations, cs.operations)
+		result.lenAfter = cs.lenAfter
+		return result
+	}
+
+	if cs == nil || cs.IsEmpty() {
+		result := NewChangeSet(other.lenBefore)
+		result.operations = make([]Operation, len(other.operations))
+		copy(result.operations, other.operations)
+		result.lenAfter = other.lenAfter
+		return result
+	}
+
+	// For now, use simple merge as placeholder
+	// A full OT-based transform would require more complex logic
+	result := NewChangeSet(cs.lenBefore)
+	result.operations = append(result.operations, cs.operations...)
+	result.lenAfter = cs.lenAfter
+	return result
 }
