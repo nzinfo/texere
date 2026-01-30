@@ -70,9 +70,20 @@ func (n *LeafNode) Size() int {
 
 // Slice returns a substring from this leaf.
 func (n *LeafNode) Slice(start, end int) string {
-	// Convert character positions to byte positions
-	runes := []rune(n.text)
-	return string(runes[start:end])
+	// Convert character positions to byte positions without []rune conversion
+	byteStart := 0
+	for i := 0; i < start; i++ {
+		_, size := utf8.DecodeRuneInString(n.text[byteStart:])
+		byteStart += size
+	}
+
+	byteEnd := byteStart
+	for i := start; i < end; i++ {
+		_, size := utf8.DecodeRuneInString(n.text[byteEnd:])
+		byteEnd += size
+	}
+
+	return n.text[byteStart:byteEnd]
 }
 
 // IsLeaf returns true for leaf nodes.
@@ -248,9 +259,15 @@ func concatNodes(left, right RopeNode) RopeNode {
 func splitNode(node RopeNode, pos int) (RopeNode, RopeNode) {
 	if node.IsLeaf() {
 		leaf := node.(*LeafNode)
-		runes := []rune(leaf.text)
-		leftText := string(runes[:pos])
-		rightText := string(runes[pos:])
+		// Find byte position without []rune conversion
+		splitByte := 0
+		for i := 0; i < pos; i++ {
+			_, size := utf8.DecodeRuneInString(leaf.text[splitByte:])
+			splitByte += size
+		}
+
+		leftText := leaf.text[:splitByte]
+		rightText := leaf.text[splitByte:]
 
 		var left, right RopeNode
 		if leftText != "" {
@@ -283,9 +300,15 @@ func insertNode(node RopeNode, pos int, text string) RopeNode {
 
 	if node.IsLeaf() {
 		leaf := node.(*LeafNode)
-		runes := []rune(leaf.text)
-		leftPart := string(runes[:pos])
-		rightPart := string(runes[pos:])
+		// Find byte position without []rune conversion
+		insertByte := 0
+		for i := 0; i < pos; i++ {
+			_, size := utf8.DecodeRuneInString(leaf.text[insertByte:])
+			insertByte += size
+		}
+
+		leftPart := leaf.text[:insertByte]
+		rightPart := leaf.text[insertByte:]
 
 		return concatNodes(
 			&LeafNode{text: leftPart + text},
@@ -323,8 +346,20 @@ func deleteNode(node RopeNode, start, end int) RopeNode {
 
 	if node.IsLeaf() {
 		leaf := node.(*LeafNode)
-		runes := []rune(leaf.text)
-		newText := string(runes[:start]) + string(runes[end:])
+		// Find byte positions without []rune conversion
+		startByte := 0
+		for i := 0; i < start; i++ {
+			_, size := utf8.DecodeRuneInString(leaf.text[startByte:])
+			startByte += size
+		}
+
+		endByte := startByte
+		for i := start; i < end; i++ {
+			_, size := utf8.DecodeRuneInString(leaf.text[endByte:])
+			endByte += size
+		}
+
+		newText := leaf.text[:startByte] + leaf.text[endByte:]
 		return &LeafNode{text: newText}
 	}
 
