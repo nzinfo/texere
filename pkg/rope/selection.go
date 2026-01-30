@@ -189,23 +189,21 @@ func (r Range) Slice() (int, int) {
 }
 
 // Map maps this range through a changeset with the given association.
-// Returns the mapped range and the association used for the head.
+// Returns the mapped range with the anchor and head positions transformed.
 func (r Range) Map(cs *ChangeSet, assoc Assoc) Range {
+	// Use a single mapper to map both positions
 	mapper := NewPositionMapper(cs)
+	mapper.AddPosition(r.Anchor, AssocBefore)
+	mapper.AddPosition(r.Head, assoc)
 
-	// Map both anchor and head positions
-	anchorMapper := NewPositionMapper(cs)
-	headMapper := NewPositionMapper(cs)
-
-	anchorMapper.AddPosition(r.Anchor, AssocBefore)
-	headMapper.AddPosition(r.Head, assoc)
-
-	anchorMapped := anchorMapper.Map()
-	headMapped := headMapper.Map()
+	mapped := mapper.Map()
+	if len(mapped) < 2 {
+		return r
+	}
 
 	return Range{
-		Anchor: anchorMapped,
-		Head:   headMapped,
+		Anchor: mapped[0],
+		Head:   mapped[1],
 	}
 }
 

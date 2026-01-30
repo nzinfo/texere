@@ -475,6 +475,91 @@ func (r *Rope) Clone() *Rope {
 	return r
 }
 
+// Runes returns all runes in the rope as a slice.
+func (r *Rope) Runes() []rune {
+	if r == nil || r.length == 0 {
+		return []rune{}
+	}
+
+	it := r.NewIterator()
+	runes := make([]rune, 0, r.length)
+	for it.Next() {
+		runes = append(runes, it.Current())
+	}
+	return runes
+}
+
+// ForEach calls the given function for each rune in the rope.
+func (r *Rope) ForEach(f func(rune)) {
+	if r == nil || r.length == 0 {
+		return
+	}
+
+	it := r.NewIterator()
+	for it.Next() {
+		f(it.Current())
+	}
+}
+
+// ForEachWithIndex calls the given function for each rune with its index.
+func (r *Rope) ForEachWithIndex(f func(int, rune)) {
+	if r == nil || r.length == 0 {
+		return
+	}
+
+	it := r.NewIterator()
+	for it.Next() {
+		f(it.Position(), it.Current())
+	}
+}
+
+// Map creates a new rope by applying the given function to each rune.
+func (r *Rope) Map(f func(rune) rune) *Rope {
+	if r == nil || r.length == 0 {
+		return r
+	}
+
+	result := make([]rune, 0, r.length)
+	it := r.NewIterator()
+	for it.Next() {
+		result = append(result, f(it.Current()))
+	}
+	return New(string(result))
+}
+
+// Filter creates a new rope containing only runes for which f returns true.
+func (r *Rope) Filter(f func(rune) bool) *Rope {
+	if r == nil || r.length == 0 {
+		return r
+	}
+
+	result := make([]rune, 0, r.length)
+	it := r.NewIterator()
+	for it.Next() {
+		ch := it.Current()
+		if f(ch) {
+			result = append(result, ch)
+		}
+	}
+	return New(string(result))
+}
+
+// Count returns the number of runes for which f returns true.
+func (r *Rope) Count(f func(rune) bool) int {
+	if r == nil || r.length == 0 {
+		return 0
+	}
+
+	count := 0
+	it := r.NewIterator()
+	for it.Next() {
+		if f(it.Current()) {
+			count++
+		}
+	}
+	return count
+}
+
 // ========== Utility Functions ==========
 
 // Lines splits the rope into lines, preserving line endings.

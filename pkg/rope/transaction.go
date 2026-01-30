@@ -466,10 +466,14 @@ func (t *Transaction) InsertAtEOF(text string) *Transaction {
 	if t == nil || t.changeset == nil {
 		return NewTransaction(NewChangeSet(0).Insert(text))
 	}
-	
-	newCs := t.changeset.Clone()
+
+	newCs := t.changeset.clone()
+	// If the changeset is empty, retain all original content first
+	if len(newCs.operations) == 0 {
+		newCs.Retain(newCs.lenBefore)
+	}
 	newCs.Insert(text)
-	
+
 	return &Transaction{
 		changeset: newCs,
 		selection: t.selection,
@@ -546,21 +550,22 @@ func ChangeBySelectionIgnoreOverlapping(
 	}
 
 	ranges := make([]indexedRange, 0, selection.Len())
-	lastSelectionIdx := -1
+	lastTo := -1
 	newPrimaryIdx := 0
 
 	// Process ranges in order, tracking the primary selection
 	for idx, r := range selection.Iter() {
 		from, to := changeRange(r)
-		
+
 		// Skip if this range is completely before the last processed position
-		if from < ranges[len(ranges)-1].Range.To {
+		if len(ranges) > 0 && from < lastTo {
 			continue
 		}
-		
+
 		// Add the range
 		ranges = append(ranges, indexedRange{Index: idx, Range: r})
-		
+		lastTo = to
+
 		// Track primary selection
 		if idx == selection.PrimaryIndex() {
 			newPrimaryIdx = len(ranges) - 1
@@ -576,10 +581,11 @@ func ChangeBySelectionIgnoreOverlapping(
 	filteredRanges := make([]Range, 0, len(ranges))
 
 	for _, ir := range ranges {
-		text := createTendril(ir.Range.From, ir.Range.To)
+		from, to := changeRange(ir.Range)
+		text := createTendril(from, to)
 		changes = append(changes, EditOperation{
-			From: ir.Range.From,
-			To:   ir.Range.To,
+			From: from,
+			To:   to,
 			Text: text,
 		})
 		filteredRanges = append(filteredRanges, ir.Range)

@@ -8,20 +8,14 @@ import (
 // 全局池
 var iteratorPool = sync.Pool{
 	New: func() interface{} {
-		return &Iterator{
-			stack: make([]frame, 0, 16),
-		}
+		return &Iterator{}
 	},
 }
 
 // NewIteratorPooled 使用对象池
 func (r *Rope) NewIteratorPooled() *Iterator {
 	it := iteratorPool.Get().(*Iterator)
-	it.rope = r
-	it.position = 0
-	it.runePos = -1
-	it.stack = it.stack[:0]
-	it.exhausted = (r == nil || r.Length() == 0)
+	*it = *r.NewIterator()
 	return it
 }
 

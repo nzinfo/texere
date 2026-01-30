@@ -291,7 +291,7 @@ func (r *Rope) BatchDelete(ranges []Range) *Rope {
 	copy(sortedRanges, ranges)
 	for i := 0; i < len(sortedRanges)-1; i++ {
 		for j := 0; j < len(sortedRanges)-i-1; j++ {
-			if sortedRanges[j].Start < sortedRanges[j+1].Start {
+			if sortedRanges[j].From() < sortedRanges[j+1].From() {
 				sortedRanges[j], sortedRanges[j+1] = sortedRanges[j+1], sortedRanges[j]
 			}
 		}
@@ -300,7 +300,7 @@ func (r *Rope) BatchDelete(ranges []Range) *Rope {
 	// Apply deletions from right to left
 	result := r
 	for _, rng := range sortedRanges {
-		result = result.DeleteFast(rng.Start, rng.End)
+		result = result.DeleteFast(rng.From(), rng.To())
 	}
 
 	return result

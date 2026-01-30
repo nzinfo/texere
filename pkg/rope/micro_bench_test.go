@@ -236,9 +236,9 @@ func BenchmarkBatchInsert_vs_Sequential(b *testing.B) {
 func BenchmarkBatchDelete_Small(b *testing.B) {
 	r := New("Hello, World! This is a test string.")
 	ranges := []Range{
-		{Start: 0, End: 5},
-		{Start: 10, End: 15},
-		{Start: 20, End: 25},
+		NewRange(0, 5),
+		NewRange(10, 15),
+		NewRange(20, 25),
 	}
 
 	b.ResetTimer()
@@ -418,8 +418,8 @@ func TestBatchOperations_Correctness(t *testing.T) {
 	// "ABCDEFGH" -> delete positions 0-2 (AB) and 4-6 (EF) -> "CDGH"
 	r2 := New("ABCDEFGH")
 	ranges := []Range{
-		{Start: 0, End: 2},
-		{Start: 4, End: 6},
+		NewRange(0, 2),
+		NewRange(4, 6),
 	}
 	result = r2.BatchDelete(ranges)
 	expected = "CDGH"

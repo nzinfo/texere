@@ -217,8 +217,9 @@ func TestTransaction_Compose(t *testing.T) {
 	sel := NewSelection(Point(10))
 	tx1 = tx1.WithSelection(sel)
 
-	// Compose with another transaction
-	cs2 := NewChangeSet(tx1.Changeset().LenAfter()).Delete(6)
+	// Compose with another transaction that deletes the inserted " world"
+	// Need to Retain(5) then Delete(6) to delete " world" (6 chars starting at position 5)
+	cs2 := NewChangeSet(tx1.Changeset().LenAfter()).Retain(5).Delete(6)
 	tx2 := NewTransaction(cs2)
 
 	composed := tx1.Compose(tx2)

@@ -165,13 +165,15 @@ func (pm *PositionMapper) mapSorted() []int {
 
 		// Process operations until we reach or pass targetPos
 		for _, op := range pm.changeset.operations {
-			if oldPos >= targetPos {
-				// Already reached or passed target
-				// fmt.Printf("  Already at target, breaking\n")
+			// Stop if we've passed target in old document
+			// Exception: Inserts don't consume old document, so continue processing them
+			if oldPos > targetPos {
 				break
 			}
-
-			// fmt.Printf("  Processing op: Type=%v, Len=%d, Text=%q\n", op.OpType, op.Length, op.Text)
+			// Stop if we've reached target via Retain/Delete (but allow Inserts at target)
+			if oldPos == targetPos && op.OpType != OpInsert {
+				break
+			}
 
 			switch op.OpType {
 			case OpRetain:
@@ -180,35 +182,28 @@ func (pm *PositionMapper) mapSorted() []int {
 					advance := targetPos - oldPos
 					oldPos += advance
 					newPos += advance
-					// fmt.Printf("    Partial retain: advance=%d, oldPos=%d, newPos=%d\n", advance, oldPos, newPos)
-					// Don't break yet - we might have more positions to process
-					// Actually, we should break since we've reached the target
 					break
 				} else {
 					// Entire retain is before target
 					oldPos += op.Length
 					newPos += op.Length
-					// fmt.Printf("    Full retain: oldPos=%d, newPos=%d\n", oldPos, newPos)
 				}
 
 			case OpDelete:
-				if oldPos+op.Length >= targetPos {
-					// Target is within this delete
+				if oldPos+op.Length > targetPos {
+					// Target is within this delete (not at the end)
 					// Delete it, but don't advance oldPos past target
 					oldPos = targetPos
-					// fmt.Printf("    Partial delete: oldPos=%d\n", oldPos)
 					break
 				} else {
-					// Entire delete is before target
+					// Entire delete is before or at target
 					oldPos += op.Length
-					// fmt.Printf("    Full delete: oldPos=%d\n", oldPos)
 				}
 
 			case OpInsert:
 				// Inserted content affects newPos but not oldPos
 				insertLen := len([]rune(op.Text))
 				newPos += insertLen
-				// fmt.Printf("    Insert: insertLen=%d, newPos=%d\n", insertLen, newPos)
 			}
 		}
 
