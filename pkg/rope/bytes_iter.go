@@ -4,10 +4,12 @@ package rope
 
 // BytesIterator iterates over the bytes of a rope.
 type BytesIterator struct {
-	rope       *Rope
-	position   int // Current byte position
-	totalBytes int
-	exhausted  bool
+	rope         *Rope
+	bytePos      int     // Current byte position
+	totalBytes   int
+	currentLeaf  string  // Cached current leaf text
+	leafBytePos  int     // Byte position within current leaf
+	exhausted    bool
 }
 
 // NewBytesIterator creates a new bytes iterator.
@@ -15,17 +17,54 @@ func (r *Rope) NewBytesIterator() *BytesIterator {
 	if r == nil || r.Length() == 0 {
 		return &BytesIterator{
 			rope:       r,
-			position:   0,
+			bytePos:    0,
 			totalBytes: 0,
 			exhausted:  true,
 		}
 	}
-	return &BytesIterator{
+	it := &BytesIterator{
 		rope:       r,
-		position:   -1, // Start before first byte
+		bytePos:    -1, // Start before first byte
 		totalBytes: r.Size(),
 		exhausted:  false,
 	}
+	it.moveToFirstLeaf()
+	return it
+}
+
+// moveToFirstLeaf positions the iterator at the first leaf.
+func (it *BytesIterator) moveToFirstLeaf() {
+	it.loadLeafAtByte(0)
+}
+
+// loadLeafAtByte loads the leaf containing the given byte position.
+func (it *BytesIterator) loadLeafAtByte(bytePos int) {
+	if bytePos >= it.totalBytes {
+		it.exhausted = true
+		return
+	}
+
+	// Find leaf containing this byte position
+	// For efficiency, we traverse the tree to find the right leaf
+	it.findLeafForByte(it.rope.root, bytePos, 0)
+}
+
+// findLeafForByte recursively finds the leaf containing the byte position.
+func (it *BytesIterator) findLeafForByte(node RopeNode, targetBytePos int, offset int) bool {
+	if node.IsLeaf() {
+		leaf := node.(*LeafNode)
+		it.currentLeaf = leaf.text
+		it.leafBytePos = targetBytePos - offset
+		return true
+	}
+
+	internal := node.(*InternalNode)
+	leftSize := internal.left.Size()
+
+	if targetBytePos < offset+leftSize {
+		return it.findLeafForByte(internal.left, targetBytePos, offset)
+	}
+	return it.findLeafForByte(internal.right, targetBytePos, offset+leftSize)
 }
 
 // IterBytes creates an iterator over the rope's bytes.
@@ -39,8 +78,24 @@ func (it *BytesIterator) Next() bool {
 		return false
 	}
 
-	it.position++
-	if it.position >= it.totalBytes {
+	// First call
+	if it.bytePos == -1 {
+		it.bytePos = 0
+		it.leafBytePos = 0
+		return !it.exhausted
+	}
+
+	// Move to next byte
+	it.bytePos++
+	it.leafBytePos++
+
+	// Check if we've exhausted the current leaf
+	if it.leafBytePos >= len(it.currentLeaf) {
+		it.loadLeafAtByte(it.bytePos)
+	}
+
+	// Check if we've exhausted all bytes
+	if it.bytePos >= it.totalBytes {
 		it.exhausted = true
 		return false
 	}
@@ -50,31 +105,38 @@ func (it *BytesIterator) Next() bool {
 
 // Current returns the current byte.
 func (it *BytesIterator) Current() byte {
-	if it.position < 0 || it.position >= it.totalBytes {
+	if it.bytePos < 0 || it.bytePos >= it.totalBytes {
 		panic("iterator out of bounds")
 	}
-	return it.rope.ByteAt(it.position)
+	if it.leafBytePos < 0 || it.leafBytePos >= len(it.currentLeaf) {
+		panic("iterator leaf position out of bounds")
+	}
+	return it.currentLeaf[it.leafBytePos]
 }
 
 // Position returns the current byte position.
 func (it *BytesIterator) Position() int {
-	return it.position
+	return it.bytePos
 }
 
 // BytePosition returns the current position (alias for Position).
 func (it *BytesIterator) BytePosition() int {
-	return it.position
+	return it.bytePos
 }
 
 // HasNext returns true if there are more bytes to iterate.
 func (it *BytesIterator) HasNext() bool {
-	return !it.exhausted && (it.position+1) < it.totalBytes
+	return !it.exhausted && (it.bytePos+1) < it.totalBytes
 }
 
 // Reset resets the iterator to the beginning.
 func (it *BytesIterator) Reset() {
-	it.position = -1
+	it.bytePos = -1
+	it.leafBytePos = 0
 	it.exhausted = (it.rope == nil || it.rope.Size() == 0)
+	if !it.exhausted {
+		it.moveToFirstLeaf()
+	}
 }
 
 // IsExhausted returns true if the iterator has been exhausted.
@@ -104,20 +166,45 @@ func (it *BytesIterator) Skip(n int) bool {
 	}
 	for i := 0; i < n && it.Next(); i++ {
 	}
-	return it.HasNext() || it.position < it.totalBytes-1
+	return it.HasNext() || it.bytePos < it.totalBytes-1
 }
 
 // Peek returns the next byte without advancing the iterator.
 func (it *BytesIterator) Peek() byte {
-	if it.position+1 >= it.totalBytes {
+	if it.bytePos+1 >= it.totalBytes {
 		panic("no next byte")
 	}
-	return it.rope.ByteAt(it.position + 1)
+	// Temporarily advance to peek
+	nextBytePos := it.bytePos + 1
+	nextLeafPos := it.leafBytePos + 1
+
+	// Check if we need to load next leaf
+	if nextLeafPos >= len(it.currentLeaf) {
+		// Save state
+		savedBytePos := it.bytePos
+		savedLeafPos := it.leafBytePos
+		savedLeaf := it.currentLeaf
+
+		// Load next leaf
+		it.loadLeafAtByte(nextBytePos)
+
+		// Get the byte
+		b := it.currentLeaf[it.leafBytePos]
+
+		// Restore state
+		it.bytePos = savedBytePos
+		it.leafBytePos = savedLeafPos
+		it.currentLeaf = savedLeaf
+
+		return b
+	}
+
+	return it.currentLeaf[nextLeafPos]
 }
 
 // HasPeek returns true if there is a next byte to peek.
 func (it *BytesIterator) HasPeek() bool {
-	return it.position+1 < it.totalBytes
+	return it.bytePos+1 < it.totalBytes
 }
 
 // ========== Bytes Iterator At Position ==========
@@ -135,7 +222,7 @@ func (r *Rope) BytesIteratorAt(byteIdx int) *BytesIterator {
 	if byteIdx == r.Size() {
 		return &BytesIterator{
 			rope:       r,
-			position:   byteIdx - 1,
+			bytePos:    byteIdx - 1,
 			totalBytes: r.Size(),
 			exhausted:  true,
 		}
@@ -143,7 +230,7 @@ func (r *Rope) BytesIteratorAt(byteIdx int) *BytesIterator {
 
 	return &BytesIterator{
 		rope:       r,
-		position:   byteIdx - 1, // Next() will move to byteIdx
+		bytePos:    byteIdx - 1, // Next() will move to byteIdx
 		totalBytes: r.Size(),
 		exhausted:  false,
 	}
@@ -162,8 +249,9 @@ func (it *BytesIterator) Seek(byteIdx int) bool {
 		return false
 	}
 
-	it.position = byteIdx - 1 // Next() will move to byteIdx
+	it.bytePos = byteIdx - 1 // Next() will move to byteIdx
 	it.exhausted = false
+	it.loadLeafAtByte(byteIdx)
 	return true
 }
 
