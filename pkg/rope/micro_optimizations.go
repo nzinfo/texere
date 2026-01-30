@@ -313,7 +313,7 @@ type Insertion struct {
 }
 
 // Range represents a range [Start, End).
-type Range struct {
+type ByteRange struct {
 	Start int
 	End   int
 }
