@@ -21,6 +21,7 @@ type Iterator struct {
 	rope      *Rope
 	position  int    // Current character position
 	runePos   int    // Position within the current leaf (-1 = not initialized)
+	bytePos   int    // Byte position within current leaf (avoids []rune conversion)
 	stack     []frame // Stack for tree traversal
 	current   string  // Current leaf text
 	exhausted bool    // True when iteration is complete
@@ -56,14 +57,6 @@ func (r *Rope) IteratorAt(pos int) *Iterator {
 		exhausted: false,
 	}
 	it.seekTo(pos)
-
-	// seekTo() decrements runePos, but only if pos > 0
-	// We need to increment it to point to the character at pos
-	if pos > 0 {
-		it.runePos++
-	}
-	// If pos == 0, seekTo() set runePos = 0 (no decrement), which is correct
-
 	return it
 }
 
@@ -102,6 +95,14 @@ func (it *Iterator) loadCurrentLeaf() {
 		leaf := frame.node.(*LeafNode)
 		it.current = leaf.text
 		it.runePos = frame.position
+
+		// Calculate byte position for this rune position
+		it.bytePos = 0
+		for i := 0; i < frame.position; i++ {
+			_, size := utf8.DecodeRuneInString(it.current[it.bytePos:])
+			it.bytePos += size
+		}
+
 		it.exhausted = false
 	} else {
 		it.exhausted = true
@@ -126,21 +127,23 @@ func (it *Iterator) Next() bool {
 		return true
 	}
 
-	// Special case: if runePos == position, this is the first Next() call
-	// after IteratorAt/Seek. In this case, Current() already returns the
-	// character at the current position, so we should only advance position.
-	if it.runePos == it.position {
+	// After IteratorAt/Seek, the first Next() should only advance position,
+	// not the character (because IteratorAt already positioned us on a character).
+	// We detect this by checking if position matches what we set in IteratorAt/Seek.
+	if it.position == it.runePos {
 		it.position++
 		return !it.exhausted
 	}
 
 	// Move to next rune in current leaf
-	runes := []rune(it.current)
+	// Get size of current rune to advance byte position
+	_, size := utf8.DecodeRuneInString(it.current[it.bytePos:])
+	it.bytePos += size
 	it.runePos++
 	it.position++
 
 	// Check if we've exhausted the current leaf
-	if it.runePos >= len(runes) {
+	if it.bytePos >= len(it.current) {
 		it.advanceToNextLeaf()
 	}
 
@@ -189,14 +192,6 @@ func (it *Iterator) Seek(pos int) bool {
 
 	it.position = pos
 	it.seekTo(pos)
-
-	// seekTo() decrements runePos, but only if pos > 0
-	// We need to increment it to point to the character at pos
-	if pos > 0 {
-		it.runePos++
-	}
-	// If pos == 0, seekTo() set runePos = 0 (no decrement), which is correct
-
 	return true
 }
 
@@ -211,20 +206,14 @@ func (it *Iterator) seekTo(pos int) {
 		it.loadCurrentLeaf()
 		if !it.exhausted {
 			// Position at the end of the last leaf
-			runes := []rune(it.current)
-			it.runePos = len(runes)
+			it.runePos = utf8.RuneCountInString(it.current)
+			it.bytePos = len(it.current)
 		}
 		return
 	}
 
 	it.seekInNode(it.rope.root, pos)
-
-	// After seeking, we're positioned at 'pos', but Next() will increment runePos.
-	// So we need to decrement by 1 so that after Next() increments, we get 'pos'.
-	// However, if pos is 0, we should keep it at -1 so Next() initializes correctly.
-	if pos > 0 {
-		it.runePos--
-	}
+	// loadCurrentLeaf() already positioned us correctly with both runePos and bytePos
 }
 
 // seekToForIteratorAt positions the iterator at the given character position
@@ -239,8 +228,8 @@ func (it *Iterator) seekToForIteratorAt(pos int) {
 		it.pushRight(it.rope.root)
 		it.loadCurrentLeaf()
 		if !it.exhausted {
-			runes := []rune(it.current)
-			it.runePos = len(runes)
+			it.runePos = utf8.RuneCountInString(it.current)
+			it.bytePos = len(it.current)
 		}
 		return
 	}
@@ -288,12 +277,12 @@ func (it *Iterator) Current() rune {
 		panic("iterator is exhausted or not positioned")
 	}
 
-	runes := []rune(it.current)
-	if it.runePos >= len(runes) {
-		panic("iterator position out of bounds")
+	if it.bytePos < 0 || it.bytePos >= len(it.current) {
+		panic("iterator byte position out of bounds")
 	}
 
-	return runes[it.runePos]
+	rune, _ := utf8.DecodeRuneInString(it.current[it.bytePos:])
+	return rune
 }
 
 // Position returns the current character position.
@@ -410,13 +399,6 @@ func (it *Iterator) Skip(count int) int {
 
 	it.position += count
 	it.seekTo(it.position)
-
-	// seekTo() decrements runePos, but only if position > 0
-	// We need to increment it to point to the character at position
-	if it.position > 0 {
-		it.runePos++
-	}
-
 	return count
 }
 
