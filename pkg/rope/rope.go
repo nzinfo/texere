@@ -204,17 +204,22 @@ func (r *Rope) CharAt(pos int) rune {
 	if pos < 0 || pos >= r.length {
 		panic("character position out of range")
 	}
-	return []rune(r.Slice(pos, pos+1))[0]
+	// Use optimized iterator instead of []rune conversion
+	it := r.IteratorAt(pos)
+	return it.Current()
 }
 
 // ByteAt returns the byte at the given byte position.
 // Panics if position is out of bounds.
 func (r *Rope) ByteAt(pos int) byte {
-	bytes := r.Bytes()
-	if pos < 0 || pos >= len(bytes) {
+	if pos < 0 || pos >= r.size {
 		panic("byte position out of range")
 	}
-	return bytes[pos]
+	// Use optimized bytes iterator instead of Bytes()
+	it := r.NewBytesIterator()
+	it.Seek(pos)
+	it.Next() // Move to the target position
+	return it.Current()
 }
 
 // ========== Helper Functions ==========

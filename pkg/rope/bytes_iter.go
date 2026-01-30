@@ -220,20 +220,25 @@ func (r *Rope) BytesIteratorAt(byteIdx int) *BytesIterator {
 	}
 
 	if byteIdx == r.Size() {
-		return &BytesIterator{
+		it := &BytesIterator{
 			rope:       r,
-			bytePos:    byteIdx - 1,
+			bytePos:    byteIdx,
 			totalBytes: r.Size(),
 			exhausted:  true,
 		}
+		// Still need to load leaf for consistency
+		it.loadLeafAtByte(byteIdx - 1)
+		return it
 	}
 
-	return &BytesIterator{
+	it := &BytesIterator{
 		rope:       r,
 		bytePos:    byteIdx - 1, // Next() will move to byteIdx
 		totalBytes: r.Size(),
 		exhausted:  false,
 	}
+	it.loadLeafAtByte(byteIdx)
+	return it
 }
 
 // IterBytesAt creates an iterator starting at a specific byte position.
@@ -251,7 +256,7 @@ func (it *BytesIterator) Seek(byteIdx int) bool {
 
 	it.bytePos = byteIdx - 1 // Next() will move to byteIdx
 	it.exhausted = false
-	it.loadLeafAtByte(byteIdx)
+	it.loadLeafAtByte(byteIdx - 1) // Load leaf at byteIdx-1 so Next() moves to byteIdx
 	return true
 }
 
