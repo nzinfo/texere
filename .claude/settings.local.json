@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git worktree:*)",
+      "Bash(if exist:*)",
+      "Bash(git checkout:*)"
+    ]
+  }
+}

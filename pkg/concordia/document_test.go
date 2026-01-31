@@ -3,10 +3,11 @@ package concordia
 import (
 	"testing"
 
+	"github.com/coreseekdev/texere/pkg/ot"
 	"github.com/stretchr/testify/assert"
 )
 
-// This file contains tests for the Document interface.
+// This file contains tests for the ot.Document interface.
 // We test it through the StringDocument implementation from string_document.go.
 
 // ========== Document Interface Tests ==========
@@ -65,9 +66,9 @@ func TestDocument_Interface_Slice_UTF8(t *testing.T) {
 // ========== Document Interface Compliance ==========
 
 func TestDocument_Interface_Compliance(t *testing.T) {
-	// This test ensures that StringDocument implements the Document interface
-	var _ Document = (*StringDocument)(nil)
+	// This test ensures that StringDocument implements the ot.Document interface
+	var _ ot.Document = (*StringDocument)(nil)
 
 	doc := NewStringDocument("Test")
-	assert.Implements(t, (*Document)(nil), doc)
+	assert.Implements(t, (*ot.Document)(nil), doc)
 }

@@ -5,8 +5,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
-	"github.com/coreseekdev/texere/pkg/concordia"
 )
 
 // TestOperation_Constructor tests the operation constructor.
@@ -299,21 +297,4 @@ func TestOperation_Transform_Random(t *testing.T) {
 		assert.True(t, abPrime.Equals(baPrime))
 		assert.Equal(t, afterABPrime, afterBaPrime)
 	}
-}
-
-// TestDocument_StringDocument tests StringDocument implementation.
-func TestDocument_StringDocument(t *testing.T) {
-	content := "Hello World"
-	doc := concordia.NewStringDocument(content)
-
-	assert.Equal(t, len(content), doc.Length())
-	assert.Equal(t, content, doc.String())
-	assert.Equal(t, content, doc.Slice(0, len(content)))
-	assert.Equal(t, "World", doc.Slice(6, 11))
-	assert.Equal(t, []byte(content), doc.Bytes())
-
-	// Test clone
-	cloned := doc.Clone()
-	assert.Equal(t, doc.String(), cloned.String())
-	assert.Equal(t, doc.Length(), cloned.Length())
 }

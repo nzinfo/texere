@@ -1,8 +1,12 @@
 package concordia
 
+import (
+	"github.com/coreseekdev/texere/pkg/ot"
+)
+
 // StringDocument is a simple string-based document implementation.
 //
-// This is the most straightforward implementation of the Document interface,
+// This is the most straightforward implementation of the ot.Document interface,
 // using a Go string as the underlying storage. It's efficient for small to
 // medium-sized documents and for documents that don't require frequent
 // insertions/deletions in the middle.
@@ -71,7 +75,7 @@ func (d *StringDocument) Bytes() []byte {
 	return []byte(d.content)
 }
 
-// Clone creates a deep copy of the concordia.
+// Clone creates a deep copy of the document.
 //
 // For StringDocument, this creates a copy of the underlying string.
 // Since Go strings are immutable, this is effectively a shallow copy,
@@ -79,7 +83,7 @@ func (d *StringDocument) Bytes() []byte {
 // to the original document (through new operations) won't affect the clone.
 //
 // This is O(1) time complexity.
-func (d *StringDocument) Clone() Document {
+func (d *StringDocument) Clone() ot.Document {
 	return &StringDocument{
 		content: d.content,
 	}

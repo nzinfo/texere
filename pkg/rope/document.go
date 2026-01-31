@@ -1,10 +1,10 @@
 package rope
 
 import (
-	"github.com/coreseekdev/texere/pkg/concordia"
+	"github.com/coreseekdev/texere/pkg/ot"
 )
 
-// RopeDocument adapts a Rope to implement the Document interface.
+// RopeDocument adapts a Rope to implement the ot.Document interface.
 //
 // This allows Rope to be used interchangeably with other Document implementations
 // (e.g., StringDocument) in the OT (Operational Transformation) layer.
@@ -64,7 +64,7 @@ func (d *RopeDocument) Bytes() []byte {
 // Clone creates a copy of the concordia.
 // Since Rope is immutable, this returns the same instance without copying.
 // The returned value can be safely used as an independent Document.
-func (d *RopeDocument) Clone() concordia.Document {
+func (d *RopeDocument) Clone() ot.Document {
 	if d == nil {
 		return &RopeDocument{rope: Empty()}
 	}
@@ -116,7 +116,7 @@ func (d *RopeDocument) Replace(start, end int, text string) *RopeDocument {
 }
 
 // Concat returns a new RopeDocument with another document appended.
-func (d *RopeDocument) Concat(other concordia.Document) *RopeDocument {
+func (d *RopeDocument) Concat(other ot.Document) *RopeDocument {
 	if d == nil {
 		if other == nil {
 			return &RopeDocument{rope: Empty()}
@@ -156,7 +156,7 @@ func (d *RopeDocument) Split(pos int) (*RopeDocument, *RopeDocument) {
 // AsRopeDocument attempts to convert any Document to a RopeDocument.
 // If the document is already a RopeDocument, it returns it directly.
 // Otherwise, it creates a new RopeDocument from the document's content.
-func AsRopeDocument(doc concordia.Document) *RopeDocument {
+func AsRopeDocument(doc ot.Document) *RopeDocument {
 	if doc == nil {
 		return &RopeDocument{rope: Empty()}
 	}
@@ -170,7 +170,7 @@ func AsRopeDocument(doc concordia.Document) *RopeDocument {
 }
 
 // IsRopeDocument returns true if the document is a RopeDocument.
-func IsRopeDocument(doc concordia.Document) bool {
+func IsRopeDocument(doc ot.Document) bool {
 	_, ok := doc.(*RopeDocument)
 	return ok
 }
@@ -240,7 +240,7 @@ func (d *RopeDocument) Validate() error {
 // ========== Document Comparison ==========
 
 // Equals returns true if two documents have identical content.
-func (d *RopeDocument) Equals(other concordia.Document) bool {
+func (d *RopeDocument) Equals(other ot.Document) bool {
 	if d == nil && other == nil {
 		return true
 	}
@@ -252,7 +252,7 @@ func (d *RopeDocument) Equals(other concordia.Document) bool {
 
 // Compare compares two documents lexicographically.
 // Returns -1 if d < other, 0 if d == other, 1 if d > other.
-func (d *RopeDocument) Compare(other concordia.Document) int {
+func (d *RopeDocument) Compare(other ot.Document) int {
 	if d == nil && other == nil {
 		return 0
 	}
@@ -313,7 +313,7 @@ func EmptyDocument() *RopeDocument {
 }
 
 // FromDocument creates a RopeDocument from any Document implementation.
-func FromDocument(doc concordia.Document) *RopeDocument {
+func FromDocument(doc ot.Document) *RopeDocument {
 	if doc == nil {
 		return EmptyDocument()
 	}
@@ -321,7 +321,7 @@ func FromDocument(doc concordia.Document) *RopeDocument {
 }
 
 // CloneDocument safely clones a document, returning a RopeDocument.
-func CloneDocument(doc concordia.Document) *RopeDocument {
+func CloneDocument(doc ot.Document) *RopeDocument {
 	if doc == nil {
 		return EmptyDocument()
 	}
@@ -329,7 +329,7 @@ func CloneDocument(doc concordia.Document) *RopeDocument {
 }
 
 // MergeDocuments merges multiple documents into one RopeDocument.
-func MergeDocuments(docs ...concordia.Document) *RopeDocument {
+func MergeDocuments(docs ...ot.Document) *RopeDocument {
 	builder := NewBuilder()
 	for _, doc := range docs {
 		if doc != nil {
@@ -340,7 +340,7 @@ func MergeDocuments(docs ...concordia.Document) *RopeDocument {
 }
 
 // JoinDocuments joins multiple documents with a separator.
-func JoinDocuments(docs []concordia.Document, separator string) *RopeDocument {
+func JoinDocuments(docs []ot.Document, separator string) *RopeDocument {
 	if len(docs) == 0 {
 		return EmptyDocument()
 	}

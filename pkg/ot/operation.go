@@ -4,8 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"strings"
-
-	"github.com/coreseekdev/texere/pkg/concordia"
 )
 
 var (
@@ -145,10 +143,10 @@ func (op *Operation) String() string {
 	return strings.Join(parts, ", ")
 }
 
-// Apply applies this operation to a string concordia.
+// Apply applies this operation to a string document.
 //
-// This is a convenience method that creates a StringDocument and applies
-// the operation to it. For more control, use ApplyToDocument instead.
+// This is a convenience method for applying operations to string documents.
+// For more control over the document type, use ApplyToDocument instead.
 //
 // Parameters:
 //   - str: the document string to apply the operation to
@@ -159,11 +157,11 @@ func (op *Operation) String() string {
 //
 // Example:
 //
-//	op := NewBuilder().Retain(6).Insert("Go ").Delete(6).Build()
+//	op := ot.NewBuilder().Retain(6).Insert("Go ").Delete(6).Build()
 //	newDoc, err := op.Apply("Hello World")
 //	// newDoc == "Hello Go "
 func (op *Operation) Apply(str string) (string, error) {
-	doc := concordia.NewStringDocument(str)
+	doc := NewStringDocument(str)
 	result, err := op.ApplyToDocument(doc)
 	if err != nil {
 		return "", err
@@ -186,10 +184,10 @@ func (op *Operation) Apply(str string) (string, error) {
 //
 // Example:
 //
-//	doc := NewStringDocument("Hello World")
-//	op := NewBuilder().Retain(6).Insert("Go ").Build()
+//	doc := ot.NewStringDocument("Hello World")
+//	op := ot.NewBuilder().Retain(6).Insert("Go ").Build()
 //	newDoc, err := op.ApplyToDocument(doc)
-func (op *Operation) ApplyToDocument(doc concordia.Document) (concordia.Document, error) {
+func (op *Operation) ApplyToDocument(doc Document) (Document, error) {
 	// Validate operation
 	if op.baseLength != doc.Length() {
 		return nil, ErrInvalidBaseLength
@@ -227,7 +225,9 @@ func (op *Operation) ApplyToDocument(doc concordia.Document) (concordia.Document
 		return nil, fmt.Errorf("the operation didn't operate on the whole string")
 	}
 
-	return concordia.NewStringDocument(builder.String()), nil
+	// Return the result as a StringDocument
+	// The caller can convert to other document types if needed
+	return &StringDocument{content: builder.String()}, nil
 }
 
 // Invert creates the inverse of this operation.
