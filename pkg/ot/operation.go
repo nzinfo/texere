@@ -175,6 +175,10 @@ func (op *Operation) Apply(str string) (string, error) {
 // It validates that the operation's baseLength matches the document length,
 // then applies each operation in sequence.
 //
+// IMPORTANT: Operations use UTF-16 code unit positions (to match JavaScript),
+// but Go strings use UTF-8 encoding with rune indexing. This method handles
+// the conversion between UTF-16 positions and rune positions.
+//
 // Parameters:
 //   - doc: the document to apply the operation to
 //
@@ -193,35 +197,82 @@ func (op *Operation) ApplyToDocument(doc Document) (Document, error) {
 		return nil, ErrInvalidBaseLength
 	}
 
+	// Convert string to rune slice for proper Unicode handling
+	// Operations use UTF-16 code units, but we need rune positions in Go
+	str := doc.String()
+	runes := []rune(str)
+
+	// Build mapping from UTF-16 position to rune position
+	utf16ToRunePos := make([]int, 0, len(runes)*2) // Upper bound
+	runePos := 0
+	utf16Pos := 0
+
+	for _, r := range runes {
+		utf16ToRunePos = append(utf16ToRunePos, runePos)
+		if r >= 0x10000 {
+			// Surrogate pair: 2 UTF-16 code units for 1 rune
+			utf16ToRunePos = append(utf16ToRunePos, runePos)
+			utf16Pos += 2
+		} else {
+			// BMP character: 1 UTF-16 code unit
+			utf16Pos += 1
+		}
+		runePos++
+	}
+	// Add sentinel value for end of string
+	utf16ToRunePos = append(utf16ToRunePos, runePos)
+
+	// Track position in UTF-16 code units
+	currentUTF16Pos := 0
+
 	var builder strings.Builder
 	builder.Grow(op.targetLength) // Pre-allocate for efficiency
-
-	docIndex := 0
-	str := doc.String()
 
 	for _, op := range op.ops {
 		switch v := op.(type) {
 		case RetainOp:
-			// Copy characters from the original document
-			if docIndex+int(v) > len(str) {
+			// Retain: copy UTF-16 code units from the original document
+			count := int(v)
+			endUTF16Pos := currentUTF16Pos + count
+
+			// Check bounds
+			if endUTF16Pos > len(utf16ToRunePos)-1 {
 				return nil, fmt.Errorf("operation can't retain more characters than are left in the string")
 			}
-			builder.WriteString(str[docIndex : docIndex+int(v)])
-			docIndex += int(v)
+
+			// Convert UTF-16 positions to rune positions
+			startRunePos := utf16ToRunePos[currentUTF16Pos]
+			endRunePos := utf16ToRunePos[endUTF16Pos]
+
+			// Copy runes
+			for i := startRunePos; i < endRunePos; i++ {
+				builder.WriteRune(runes[i])
+			}
+
+			currentUTF16Pos = endUTF16Pos
 
 		case InsertOp:
-			// Insert new characters
+			// Insert: add new characters
 			builder.WriteString(string(v))
-			// docIndex stays the same
+			// currentUTF16Pos stays the same
 
 		case DeleteOp:
-			// Delete characters (skip over them)
-			// DeleteOp stores negative value, so we add the negative
-			docIndex += -int(v) // Same as v.Length()
+			// Delete: skip UTF-16 code units
+			count := -int(v)
+			endUTF16Pos := currentUTF16Pos + count
+
+			// Check bounds
+			if endUTF16Pos > len(utf16ToRunePos)-1 {
+				return nil, fmt.Errorf("operation can't delete more characters than are left in the string")
+			}
+
+			// Just advance position, don't copy anything
+			currentUTF16Pos = endUTF16Pos
 		}
 	}
 
-	if docIndex != len(str) {
+	// Verify we consumed the entire document (in UTF-16 code units)
+	if currentUTF16Pos != utf16Pos {
 		return nil, fmt.Errorf("the operation didn't operate on the whole string")
 	}
 

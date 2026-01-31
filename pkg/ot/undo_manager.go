@@ -1,9 +1,7 @@
-package concordia
+package ot
 
 import (
 	"sync"
-
-	"github.com/coreseekdev/texere/pkg/ot"
 )
 
 // UndoManagerState represents the current state of the undo manager.
@@ -29,7 +27,7 @@ const (
 //	um := NewUndoManager(50)
 //
 //	// Apply an operation
-//	op := ot.NewBuilder().Insert("Hello").Build()
+//	op := NewBuilder().Insert("Hello").Build()
 //	doc, _ := op.Apply(doc)
 //
 //	// Add the inverse to the undo stack
@@ -37,7 +35,7 @@ const (
 //	um.Add(inverse, true) // compose = true to merge consecutive operations
 //
 //	// Undo
-//	um.PerformUndo(func(op *ot.Operation) {
+//	um.PerformUndo(func(op *Operation) {
 //	    doc, _ = op.Apply(doc)
 //	})
 type UndoManager struct {
@@ -45,8 +43,8 @@ type UndoManager struct {
 	maxItems    int
 	state       UndoManagerState
 	dontCompose bool
-	undoStack   []*ot.Operation
-	redoStack   []*ot.Operation
+	undoStack   []*Operation
+	redoStack   []*Operation
 }
 
 // NewUndoManager creates a new undo manager.
@@ -67,8 +65,8 @@ func NewUndoManager(maxItems int) *UndoManager {
 	return &UndoManager{
 		maxItems:  maxItems,
 		state:     StateNormal,
-		undoStack: make([]*ot.Operation, 0, maxItems),
-		redoStack: make([]*ot.Operation, 0, maxItems),
+		undoStack: make([]*Operation, 0, maxItems),
+		redoStack: make([]*Operation, 0, maxItems),
 	}
 }
 
@@ -86,10 +84,10 @@ func NewUndoManager(maxItems int) *UndoManager {
 // Example:
 //
 //	// When applying an operation locally
-//	op := ot.NewBuilder().Insert("Hello").Build()
+//	op := NewBuilder().Insert("Hello").Build()
 //	inverse, _ := op.Invert(doc)
 //	um.Add(inverse, true) // Compose with previous operation
-func (um *UndoManager) Add(operation *ot.Operation, compose bool) {
+func (um *UndoManager) Add(operation *Operation, compose bool) {
 	um.mu.Lock()
 	defer um.mu.Unlock()
 
@@ -111,7 +109,7 @@ func (um *UndoManager) Add(operation *ot.Operation, compose bool) {
 			lastOp := um.undoStack[len(um.undoStack)-1]
 			// Fix: check lastOp.ShouldBeComposedWith(operation) not the reverse
 			if lastOp.ShouldBeComposedWith(operation) {
-				composedOp, err := ot.Compose(lastOp, operation)
+				composedOp, err := Compose(lastOp, operation)
 				if err == nil {
 					um.undoStack[len(um.undoStack)-1] = composedOp
 				} else {
@@ -162,7 +160,7 @@ func (um *UndoManager) Add(operation *ot.Operation, compose bool) {
 //
 //	// Now apply the remote operation
 //	doc, err = remoteOp.Apply(doc)
-func (um *UndoManager) Transform(operation *ot.Operation) error {
+func (um *UndoManager) Transform(operation *Operation) error {
 	um.mu.Lock()
 	defer um.mu.Unlock()
 
@@ -180,12 +178,12 @@ func (um *UndoManager) Transform(operation *ot.Operation) error {
 //
 // This is a helper function for Transform. It transforms each operation
 // in the stack against the given operation.
-func transformStack(stack []*ot.Operation, operation *ot.Operation) ([]*ot.Operation, error) {
-	newStack := make([]*ot.Operation, 0, len(stack))
+func transformStack(stack []*Operation, operation *Operation) ([]*Operation, error) {
+	newStack := make([]*Operation, 0, len(stack))
 
 	// Transform from newest to oldest (reverse order)
 	for i := len(stack) - 1; i >= 0; i-- {
-		opPrime, operationPrime, err := ot.Transform(stack[i], operation)
+		opPrime, operationPrime, err := Transform(stack[i], operation)
 		if err != nil {
 			return nil, err
 		}
@@ -220,16 +218,16 @@ func transformStack(stack []*ot.Operation, operation *ot.Operation) ([]*ot.Opera
 //
 // Example:
 //
-//	err := um.PerformUndo(func(op *ot.Operation) {
+//	err := um.PerformUndo(func(op *Operation) {
 //	    // Apply the inverse operation
 //	    doc, _ = op.Apply(doc)
 //	})
-func (um *UndoManager) PerformUndo(fn func(op *ot.Operation)) error {
+func (um *UndoManager) PerformUndo(fn func(op *Operation)) error {
 	um.mu.Lock()
 
 	if len(um.undoStack) == 0 {
 		um.mu.Unlock()
-		return ot.ErrCannotUndo
+		return ErrCannotUndo
 	}
 
 	um.state = StateUndoing
@@ -266,7 +264,7 @@ func (um *UndoManager) PerformUndo(fn func(op *ot.Operation)) error {
 //
 // Example:
 //
-//	err := um.PerformRedo(func(op *ot.Operation) {
+//	err := um.PerformRedo(func(op *Operation) {
 //	    // Apply the operation
 //	    doc, _ = op.Apply(doc)
 //
@@ -274,12 +272,12 @@ func (um *UndoManager) PerformUndo(fn func(op *ot.Operation)) error {
 //	    undoOp, _ := op.Invert(doc)
 //	    um.Add(undoOp, false)
 //	})
-func (um *UndoManager) PerformRedo(fn func(op *ot.Operation)) error {
+func (um *UndoManager) PerformRedo(fn func(op *Operation)) error {
 	um.mu.Lock()
 
 	if len(um.redoStack) == 0 {
 		um.mu.Unlock()
-		return ot.ErrCannotRedo
+		return ErrCannotRedo
 	}
 
 	um.state = StateRedoing
