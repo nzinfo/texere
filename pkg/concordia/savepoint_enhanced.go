@@ -1,10 +1,12 @@
-package rope
+package concordia
 
 import (
 	"sort"
 	"strconv"
 	"sync"
 	"time"
+
+	"github.com/coreseekdev/texere/pkg/rope"
 )
 
 // HashToString converts a uint32 hash to a string representation.
@@ -37,13 +39,13 @@ type EnhancedSavePoint struct {
 }
 
 // NewEnhancedSavePoint creates a new enhanced savepoint with metadata.
-func NewEnhancedSavePoint(rope *Rope, revisionID int, metadata SavePointMetadata) *EnhancedSavePoint {
+func NewEnhancedSavePoint(r *rope.Rope, revisionID int, metadata SavePointMetadata) *EnhancedSavePoint {
 	// Calculate hash for duplicate detection
-	hash := rope.HashCode()
+	hash := r.HashCode()
 	hashStr := HashToString(hash)
 
 	return &EnhancedSavePoint{
-		SavePoint: NewSavePoint(rope, revisionID),
+		SavePoint: NewSavePoint(r, revisionID),
 		metadata:  metadata,
 		hash:      hashStr,
 	}
@@ -170,7 +172,7 @@ func (esm *EnhancedSavePointManager) SetDuplicateMode(mode DuplicateMode) {
 
 // Create creates a new enhanced savepoint with metadata.
 // Returns the savepoint ID, and a boolean indicating if it was a duplicate.
-func (esm *EnhancedSavePointManager) Create(rope *Rope, revisionID int, metadata SavePointMetadata) (int, bool) {
+func (esm *EnhancedSavePointManager) Create(rope *rope.Rope, revisionID int, metadata SavePointMetadata) (int, bool) {
 	esm.mu.Lock()
 	defer esm.mu.Unlock()
 
@@ -230,7 +232,7 @@ func (esm *EnhancedSavePointManager) Get(id int) *EnhancedSavePoint {
 
 // Restore restores the document to the state saved in the savepoint.
 // Returns the rope snapshot, or nil if the savepoint doesn't exist.
-func (esm *EnhancedSavePointManager) Restore(id int) *Rope {
+func (esm *EnhancedSavePointManager) Restore(id int) *rope.Rope {
 	esm.mu.RLock()
 	defer esm.mu.RUnlock()
 
@@ -623,7 +625,7 @@ func (esm *EnhancedSavePointManager) Recent(limit int) []SavePointResult {
 }
 
 // HasDuplicate checks if a rope's content already exists in savepoints.
-func (esm *EnhancedSavePointManager) HasDuplicate(rope *Rope) bool {
+func (esm *EnhancedSavePointManager) HasDuplicate(rope *rope.Rope) bool {
 	hash := rope.HashCode()
 	hashStr := HashToString(hash)
 
@@ -635,7 +637,7 @@ func (esm *EnhancedSavePointManager) HasDuplicate(rope *Rope) bool {
 }
 
 // GetDuplicates returns all savepoint IDs with the same content as the given rope.
-func (esm *EnhancedSavePointManager) GetDuplicates(rope *Rope) []int {
+func (esm *EnhancedSavePointManager) GetDuplicates(rope *rope.Rope) []int {
 	hash := rope.HashCode()
 	hashStr := HashToString(hash)
 

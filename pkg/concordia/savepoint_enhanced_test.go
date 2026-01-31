@@ -1,9 +1,10 @@
-package rope
+package concordia
 
 import (
 	"testing"
 	"time"
 
+	"github.com/coreseekdev/texere/pkg/rope"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -12,7 +13,7 @@ import (
 // ============================================================================
 
 func TestEnhancedSavePoint_Basic(t *testing.T) {
-	r := New("Hello World")
+	r := rope.New("Hello World")
 
 	metadata := SavePointMetadata{
 		UserID:      "user1",
@@ -33,7 +34,7 @@ func TestEnhancedSavePoint_Basic(t *testing.T) {
 }
 
 func TestEnhancedSavePoint_Metadata(t *testing.T) {
-	r := New("Hello World")
+	r := rope.New("Hello World")
 	sp := NewEnhancedSavePoint(r, 1, SavePointMetadata{})
 
 	// Set metadata
@@ -53,7 +54,7 @@ func TestEnhancedSavePoint_Metadata(t *testing.T) {
 }
 
 func TestEnhancedSavePoint_Tags(t *testing.T) {
-	r := New("Hello World")
+	r := rope.New("Hello World")
 	metadata := SavePointMetadata{
 		Tags: []string{"tag1"},
 	}
@@ -82,7 +83,7 @@ func TestEnhancedSavePoint_Tags(t *testing.T) {
 
 func TestEnhancedSavePointManager_Basic(t *testing.T) {
 	sm := NewEnhancedSavePointManager()
-	r := New("Hello World")
+	r := rope.New("Hello World")
 
 	metadata := SavePointMetadata{
 		UserID:      "user1",
@@ -106,8 +107,8 @@ func TestEnhancedSavePointManager_DuplicateDetection_Skip(t *testing.T) {
 	sm := NewEnhancedSavePointManager()
 	sm.SetDuplicateMode(DuplicateModeSkip)
 
-	r1 := New("Hello World")
-	r2 := New("Hello World") // Same content
+	r1 := rope.New("Hello World")
+	r2 := rope.New("Hello World") // Same content
 
 	metadata := SavePointMetadata{
 		UserID: "user1",
@@ -131,8 +132,8 @@ func TestEnhancedSavePointManager_DuplicateDetection_Allow(t *testing.T) {
 	sm := NewEnhancedSavePointManager()
 	sm.SetDuplicateMode(DuplicateModeAllow)
 
-	r1 := New("Hello World")
-	r2 := New("Hello World")
+	r1 := rope.New("Hello World")
+	r2 := rope.New("Hello World")
 
 	metadata := SavePointMetadata{
 		UserID: "user1",
@@ -154,8 +155,8 @@ func TestEnhancedSavePointManager_DuplicateDetection_Replace(t *testing.T) {
 	sm := NewEnhancedSavePointManager()
 	sm.SetDuplicateMode(DuplicateModeReplace)
 
-	r1 := New("Hello World")
-	r2 := New("Hello World")
+	r1 := rope.New("Hello World")
+	r2 := rope.New("Hello World")
 
 	metadata := SavePointMetadata{
 		UserID: "user1",
@@ -184,7 +185,7 @@ func TestEnhancedSavePointManager_Query(t *testing.T) {
 	// Create savepoints at different times
 	now := time.Now()
 
-	r1 := New("Hello")
+	r1 := rope.New("Hello")
 	sm.Create(r1, 1, SavePointMetadata{
 		UserID: "user1",
 		Tags:   []string{"tag1", "important"},
@@ -192,7 +193,7 @@ func TestEnhancedSavePointManager_Query(t *testing.T) {
 
 	time.Sleep(10 * time.Millisecond)
 
-	r2 := New("World")
+	r2 := rope.New("World")
 	sm.Create(r2, 2, SavePointMetadata{
 		UserID: "user2",
 		Tags:   []string{"tag2", "important"},
@@ -200,7 +201,7 @@ func TestEnhancedSavePointManager_Query(t *testing.T) {
 
 	time.Sleep(10 * time.Millisecond)
 
-	r3 := New("Test")
+	r3 := rope.New("Test")
 	sm.Create(r3, 3, SavePointMetadata{
 		UserID: "user1",
 		Tags:   []string{"tag1"},
@@ -238,9 +239,9 @@ func TestEnhancedSavePointManager_Query(t *testing.T) {
 func TestEnhancedSavePointManager_HasDuplicate(t *testing.T) {
 	sm := NewEnhancedSavePointManager()
 
-	r1 := New("Hello World")
-	r2 := New("Hello World")
-	r3 := New("Different")
+	r1 := rope.New("Hello World")
+	r2 := rope.New("Hello World")
+	r3 := rope.New("Different")
 
 	metadata := SavePointMetadata{UserID: "user1"}
 
@@ -257,7 +258,7 @@ func TestEnhancedSavePointManager_HasDuplicate(t *testing.T) {
 func TestEnhancedSavePointManager_Restore(t *testing.T) {
 	sm := NewEnhancedSavePointManager()
 
-	r := New("Hello World")
+	r := rope.New("Hello World")
 	metadata := SavePointMetadata{UserID: "user1"}
 
 	id, _ := sm.Create(r, 1, metadata)
@@ -275,7 +276,7 @@ func TestEnhancedSavePointManager_Restore(t *testing.T) {
 func TestEnhancedSavePointManager_Release(t *testing.T) {
 	sm := NewEnhancedSavePointManager()
 
-	r := New("Hello World")
+	r := rope.New("Hello World")
 	metadata := SavePointMetadata{UserID: "user1"}
 
 	id, _ := sm.Create(r, 1, metadata)
@@ -300,7 +301,7 @@ func TestEnhancedSavePointManager_CleanOlderThan(t *testing.T) {
 	sm := NewEnhancedSavePointManager()
 	sm.SetDuplicateMode(DuplicateModeAllow) // Allow duplicates for testing
 
-	r := New("Hello")
+	r := rope.New("Hello")
 	metadata := SavePointMetadata{UserID: "user1"}
 
 	sm.Create(r, 1, metadata)
@@ -320,7 +321,7 @@ func TestEnhancedSavePointManager_CleanByTag(t *testing.T) {
 	sm := NewEnhancedSavePointManager()
 	sm.SetDuplicateMode(DuplicateModeAllow) // Allow duplicates for testing
 
-	r := New("Hello")
+	r := rope.New("Hello")
 
 	// Create savepoints with different tags
 	sm.Create(r, 1, SavePointMetadata{
@@ -350,7 +351,7 @@ func TestEnhancedSavePointManager_Stats(t *testing.T) {
 	sm := NewEnhancedSavePointManager()
 	sm.SetDuplicateMode(DuplicateModeAllow) // Allow duplicates for testing
 
-	r := New("Hello")
+	r := rope.New("Hello")
 
 	// Create savepoints
 	sm.Create(r, 1, SavePointMetadata{
@@ -375,7 +376,7 @@ func TestEnhancedSavePointManager_Clear(t *testing.T) {
 	sm := NewEnhancedSavePointManager()
 	sm.SetDuplicateMode(DuplicateModeAllow) // Allow duplicates for testing
 
-	r := New("Hello")
+	r := rope.New("Hello")
 	metadata := SavePointMetadata{UserID: "user1"}
 
 	sm.Create(r, 1, metadata)
@@ -396,7 +397,7 @@ func TestEnhancedSavePointManager_MultiUser(t *testing.T) {
 	sm := NewEnhancedSavePointManager()
 	sm.SetDuplicateMode(DuplicateModeAllow) // Allow duplicates for testing
 
-	r := New("Hello World")
+	r := rope.New("Hello World")
 
 	// User 1 creates savepoint
 	id1, _ := sm.Create(r, 1, SavePointMetadata{
@@ -425,7 +426,7 @@ func TestEnhancedSavePointManager_ComplexWorkflow(t *testing.T) {
 	sm.SetDuplicateMode(DuplicateModeAllow) // Allow for testing
 
 	// Simulate a document editing workflow
-	r := New("Hello")
+	r := rope.New("Hello")
 
 	// Initial savepoint
 	id1, _ := sm.Create(r, 1, SavePointMetadata{
@@ -474,7 +475,7 @@ func TestEnhancedSavePointManager_QueryPreallocated(t *testing.T) {
 	now := time.Now()
 
 	// Create multiple savepoints
-	r1 := New("Content1")
+	r1 := rope.New("Content1")
 	sm.Create(r1, 1, SavePointMetadata{
 		UserID: "user1",
 		Tags:   []string{"tag1", "important"},
@@ -482,7 +483,7 @@ func TestEnhancedSavePointManager_QueryPreallocated(t *testing.T) {
 
 	time.Sleep(5 * time.Millisecond)
 
-	r2 := New("Content2")
+	r2 := rope.New("Content2")
 	sm.Create(r2, 2, SavePointMetadata{
 		UserID: "user2",
 		Tags:   []string{"tag2"},
@@ -490,7 +491,7 @@ func TestEnhancedSavePointManager_QueryPreallocated(t *testing.T) {
 
 	time.Sleep(5 * time.Millisecond)
 
-	r3 := New("Content3")
+	r3 := rope.New("Content3")
 	sm.Create(r3, 3, SavePointMetadata{
 		UserID: "user1",
 		Tags:   []string{"tag1"},
@@ -586,13 +587,13 @@ func TestEnhancedSavePointManager_QueryByTime(t *testing.T) {
 	now := time.Now()
 
 	// Create savepoints at different times
-	sm.Create(New("V1"), 1, SavePointMetadata{UserID: "user1"})
+	sm.Create(rope.New("V1"), 1, SavePointMetadata{UserID: "user1"})
 	time.Sleep(10 * time.Millisecond)
 
-	sm.Create(New("V2"), 2, SavePointMetadata{UserID: "user1"})
+	sm.Create(rope.New("V2"), 2, SavePointMetadata{UserID: "user1"})
 	time.Sleep(10 * time.Millisecond)
 
-	sm.Create(New("V3"), 3, SavePointMetadata{UserID: "user1"})
+	sm.Create(rope.New("V3"), 3, SavePointMetadata{UserID: "user1"})
 
 	t.Run("query with time range", func(t *testing.T) {
 		start := now
@@ -644,16 +645,16 @@ func TestEnhancedSavePointManager_QueryByTag(t *testing.T) {
 	sm.SetDuplicateMode(DuplicateModeAllow)
 
 	// Create savepoints with different tags
-	sm.Create(New("C1"), 1, SavePointMetadata{
+	sm.Create(rope.New("C1"), 1, SavePointMetadata{
 		Tags: []string{"important", "checkpoint"},
 	})
-	sm.Create(New("C2"), 2, SavePointMetadata{
+	sm.Create(rope.New("C2"), 2, SavePointMetadata{
 		Tags: []string{"checkpoint"},
 	})
-	sm.Create(New("C3"), 3, SavePointMetadata{
+	sm.Create(rope.New("C3"), 3, SavePointMetadata{
 		Tags: []string{"important"},
 	})
-	sm.Create(New("C4"), 4, SavePointMetadata{
+	sm.Create(rope.New("C4"), 4, SavePointMetadata{
 		Tags: []string{"other"},
 	})
 
@@ -679,7 +680,7 @@ func TestEnhancedSavePointManager_QueryByTag(t *testing.T) {
 	})
 
 	t.Run("multiple savepoints same tag", func(t *testing.T) {
-		sm.Create(New("C5"), 5, SavePointMetadata{
+		sm.Create(rope.New("C5"), 5, SavePointMetadata{
 			Tags: []string{"important", "new"},
 		})
 
@@ -705,7 +706,7 @@ func TestEnhancedSavePointManager_ConcurrentCreate(t *testing.T) {
 	for i := 0; i < numGoroutines; i++ {
 		go func(id int) {
 			for j := 0; j < savesPerGoroutine; j++ {
-				r := New("Content" + string(rune('A'+id%26)))
+				r := rope.New("Content" + string(rune('A'+id%26)))
 				sm.Create(r, id*savesPerGoroutine+j, SavePointMetadata{
 					UserID: "user" + string(rune('0'+id%10)),
 				})
@@ -730,7 +731,7 @@ func TestEnhancedSavePointManager_ConcurrentQuery(t *testing.T) {
 
 	// Create some savepoints first
 	for i := 0; i < 20; i++ {
-		r := New("Content" + string(rune('A'+i%26)))
+		r := rope.New("Content" + string(rune('A'+i%26)))
 		sm.Create(r, i, SavePointMetadata{
 			UserID: "user" + string(rune('0'+i%5)),
 			Tags:   []string{"tag" + string(rune('0'+i%3))},
@@ -779,7 +780,7 @@ func TestEnhancedSavePointManager_ConcurrentCreateQuery(t *testing.T) {
 		go func(id int) {
 			if id%2 == 0 {
 				// Create
-				r := New("Content" + string(rune('A'+id%26)))
+				r := rope.New("Content" + string(rune('A'+id%26)))
 				sm.Create(r, id, SavePointMetadata{
 					UserID: "user" + string(rune('0'+id%3)),
 					Tags:   []string{"tag" + string(rune('0'+id%2))},
@@ -807,7 +808,7 @@ func TestEnhancedSavePointManager_ConcurrentGetRelease(t *testing.T) {
 
 	// Create initial savepoints
 	for i := 0; i < 10; i++ {
-		r := New("Content" + string(rune('A'+i%26)))
+		r := rope.New("Content" + string(rune('A'+i%26)))
 		sm.Create(r, i, SavePointMetadata{UserID: "user1"})
 	}
 
@@ -841,7 +842,7 @@ func TestEnhancedSavePointManager_ConcurrentRestore(t *testing.T) {
 
 	// Create savepoints
 	for i := 0; i < 10; i++ {
-		r := New("Content" + string(rune('A'+i%26)))
+		r := rope.New("Content" + string(rune('A'+i%26)))
 		sm.Create(r, i, SavePointMetadata{UserID: "user1"})
 	}
 
@@ -875,7 +876,7 @@ func TestEnhancedSavePointManager_ConcurrentStats(t *testing.T) {
 		go func(id int) {
 			switch id % 3 {
 			case 0:
-				r := New("Content" + string(rune('A'+id%26)))
+				r := rope.New("Content" + string(rune('A'+id%26)))
 				sm.Create(r, id, SavePointMetadata{
 					UserID: "user" + string(rune('0'+id%3)),
 				})
@@ -909,7 +910,7 @@ func TestEnhancedSavePointManager_QueryOptimized(t *testing.T) {
 
 	// Create savepoints
 	for i := 0; i < 10; i++ {
-		r := New("Content" + string(rune('A'+i%26)))
+		r := rope.New("Content" + string(rune('A'+i%26)))
 		sm.Create(r, i, SavePointMetadata{
 			UserID: "user" + string(rune('0'+i%3)),
 			Tags:   []string{"tag" + string(rune('0'+i%2))},
@@ -999,7 +1000,7 @@ func TestEnhancedSavePointManager_QueryFilters(t *testing.T) {
 
 	now := time.Now()
 
-	r1 := New("Hello")
+	r1 := rope.New("Hello")
 	sm.Create(r1, 1, SavePointMetadata{
 		UserID:      "user1",
 		Tags:        []string{"tag1", "important"},
@@ -1008,7 +1009,7 @@ func TestEnhancedSavePointManager_QueryFilters(t *testing.T) {
 
 	time.Sleep(5 * time.Millisecond)
 
-	r2 := New("World")
+	r2 := rope.New("World")
 	sm.Create(r2, 2, SavePointMetadata{
 		UserID:      "user2",
 		Tags:        []string{"tag2"},

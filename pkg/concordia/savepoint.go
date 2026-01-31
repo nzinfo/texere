@@ -1,14 +1,16 @@
-package rope
+package concordia
 
 import (
 	"sync"
 	"time"
+
+	"github.com/coreseekdev/texere/pkg/rope"
 )
 
 // SavePoint represents a snapshot of the document at a specific point in time.
 // It is reference-counted and will be automatically cleaned up when no longer referenced.
 type SavePoint struct {
-	rope       *Rope
+	rope       *rope.Rope
 	timestamp  time.Time
 	revisionID int
 	refCount   int
@@ -16,9 +18,9 @@ type SavePoint struct {
 }
 
 // NewSavePoint creates a new savepoint from the current document state.
-func NewSavePoint(rope *Rope, revisionID int) *SavePoint {
+func NewSavePoint(r *rope.Rope, revisionID int) *SavePoint {
 	return &SavePoint{
-		rope:       rope,
+		rope:       r,
 		timestamp:  time.Now(),
 		revisionID: revisionID,
 		refCount:   1, // Initial reference from creator
@@ -26,7 +28,7 @@ func NewSavePoint(rope *Rope, revisionID int) *SavePoint {
 }
 
 // Rope returns the rope snapshot.
-func (sp *SavePoint) Rope() *Rope {
+func (sp *SavePoint) Rope() *rope.Rope {
 	return sp.rope
 }
 
@@ -80,14 +82,14 @@ func NewSavePointManager() *SavePointManager {
 
 // Create creates a new savepoint from the current document state.
 // Returns a savepoint ID that can be used to restore or cleanup.
-func (sm *SavePointManager) Create(rope *Rope, revisionID int) int {
+func (sm *SavePointManager) Create(r *rope.Rope, revisionID int) int {
 	sm.mu.Lock()
 	defer sm.mu.Unlock()
 
 	id := sm.nextID
 	sm.nextID++
 
-	sm.savepoints[id] = NewSavePoint(rope, revisionID)
+	sm.savepoints[id] = NewSavePoint(r, revisionID)
 
 	return id
 }
@@ -126,7 +128,7 @@ func (sm *SavePointManager) Release(id int) {
 
 // Restore restores the document to the state saved in the savepoint.
 // Returns the rope snapshot, or nil if the savepoint doesn't exist.
-func (sm *SavePointManager) Restore(id int) *Rope {
+func (sm *SavePointManager) Restore(id int) *rope.Rope {
 	sm.mu.RLock()
 	defer sm.mu.RUnlock()
 
