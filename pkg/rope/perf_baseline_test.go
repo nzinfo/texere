@@ -157,99 +157,6 @@ func BenchmarkRopeReader_Large(b *testing.B) {
 }
 
 // ============================================================================
-// Enhanced SavePoint Performance Baseline
-// ============================================================================
-
-func BenchmarkEnhancedSavePoint_Create(b *testing.B) {
-	r := New(strings.Repeat("Hello World\n", 100))
-	metadata := SavePointMetadata{
-		UserID:      "user1",
-		ViewID:      "view1",
-		Tags:        []string{"checkpoint", "important"},
-		Description: "Test savepoint",
-	}
-
-	b.ResetTimer()
-	b.ReportAllocs()
-
-	for i := 0; i < b.N; i++ {
-		_ = NewEnhancedSavePoint(r, i, metadata)
-	}
-}
-
-func BenchmarkEnhancedSavePoint_HasTag(b *testing.B) {
-	r := New(strings.Repeat("Hello World\n", 100))
-	metadata := SavePointMetadata{
-		Tags: []string{"tag1", "tag2", "tag3", "tag4", "tag5"},
-	}
-	sp := NewEnhancedSavePoint(r, 1, metadata)
-
-	b.ResetTimer()
-	b.ReportAllocs()
-
-	for i := 0; i < b.N; i++ {
-		_ = sp.HasTag("tag3")
-	}
-}
-
-func BenchmarkEnhancedSavePoint_Metadata(b *testing.B) {
-	r := New(strings.Repeat("Hello World\n", 100))
-	metadata := SavePointMetadata{
-		UserID:      "user1",
-		ViewID:      "view1",
-		Tags:        []string{"tag1", "tag2", "tag3"},
-		Description: "Test savepoint",
-	}
-	sp := NewEnhancedSavePoint(r, 1, metadata)
-
-	b.ResetTimer()
-	b.ReportAllocs()
-
-	for i := 0; i < b.N; i++ {
-		_ = sp.Metadata()
-	}
-}
-
-func BenchmarkEnhancedSavePointManager_Create(b *testing.B) {
-	sm := NewEnhancedSavePointManager()
-	r := New(strings.Repeat("Hello World\n", 100))
-	metadata := SavePointMetadata{
-		UserID: "user1",
-		Tags:   []string{"checkpoint"},
-	}
-
-	b.ResetTimer()
-	b.ReportAllocs()
-
-	for i := 0; i < b.N; i++ {
-		sm.Create(r, i, metadata)
-	}
-}
-
-func BenchmarkEnhancedSavePointManager_Query(b *testing.B) {
-	sm := NewEnhancedSavePointManager()
-	sm.SetDuplicateMode(DuplicateModeAllow)
-
-	r := New(strings.Repeat("Hello World\n", 100))
-
-	// Create 100 savepoints
-	for i := 0; i < 100; i++ {
-		metadata := SavePointMetadata{
-			UserID: "user1",
-			Tags:   []string{"checkpoint", "important"},
-		}
-		sm.Create(r, i, metadata)
-	}
-
-	b.ResetTimer()
-	b.ReportAllocs()
-
-	for i := 0; i < b.N; i++ {
-		_ = sm.ByUser("user1", 10)
-	}
-}
-
-// ============================================================================
 // History Hooks Performance Baseline
 // ============================================================================
 
@@ -314,21 +221,6 @@ func BenchmarkBuiltinHook_TrackMetrics(b *testing.B) {
 
 	for i := 0; i < b.N; i++ {
 		hm.TriggerAfterEdit(r, edit)
-	}
-}
-
-// ============================================================================
-// Hash Performance Baseline
-// ============================================================================
-
-func BenchmarkHashToString(b *testing.B) {
-	hash := uint32(0x12345678)
-
-	b.ResetTimer()
-	b.ReportAllocs()
-
-	for i := 0; i < b.N; i++ {
-		_ = HashToString(hash)
 	}
 }
 

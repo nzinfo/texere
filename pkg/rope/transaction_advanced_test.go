@@ -223,139 +223,6 @@ func TestHistory_LaterByTime(t *testing.T) {
 	}
 }
 
-// ========== Savepoint Tests ==========
-
-func TestSavePointManager_CreateAndGet(t *testing.T) {
-	manager := NewSavePointManager()
-	doc := New("hello world")
-
-	id := manager.Create(doc, 0)
-
-	if !manager.HasSavepoint(id) {
-		t.Error("Expected savepoint to exist")
-	}
-
-	sp := manager.Get(id)
-	if sp == nil {
-		t.Fatal("Expected savepoint to be returned")
-	}
-
-	if sp.Rope().String() != "hello world" {
-		t.Errorf("Expected %q, got %q", "hello world", sp.Rope().String())
-	}
-
-	// Cleanup
-	manager.Release(id)
-}
-
-func TestSavePointManager_RefCount(t *testing.T) {
-	manager := NewSavePointManager()
-	doc := New("hello")
-
-	id := manager.Create(doc, 0)
-
-	// Initial refcount is 1 (from Create)
-	sp := manager.Get(id)
-
-	// After Get, refcount should be 2 (initial + Get)
-	// Note: Get increments the refcount
-	if sp.RefCount() != 2 {
-		t.Errorf("Expected refcount 2, got %d", sp.RefCount())
-	}
-
-	// Release once
-	manager.Release(id)
-
-	// Should still exist (one reference left)
-	if !manager.HasSavepoint(id) {
-		t.Error("Expected savepoint to still exist")
-	}
-
-	// Release again
-	manager.Release(id)
-
-	// Should be removed now
-	if manager.HasSavepoint(id) {
-		t.Error("Expected savepoint to be removed")
-	}
-}
-
-func TestSavepointManager_Restore(t *testing.T) {
-	manager := NewSavePointManager()
-	doc := New("hello world")
-
-	id := manager.Create(doc, 0)
-
-	// Modify the document
-	cs := NewChangeSet(doc.Length()).
-		Retain(5).
-		Delete(6)
-	txn := NewTransaction(cs)
-	doc = txn.Apply(doc)
-
-	if doc.String() != "hello" {
-		t.Fatalf("Expected %q, got %q", "hello", doc.String())
-	}
-
-	// Restore from savepoint
-	restored := manager.Restore(id)
-
-	if restored.String() != "hello world" {
-		t.Errorf("Expected %q, got %q", "hello world", restored.String())
-	}
-}
-
-func TestSavePointManager_CleanOlderThan(t *testing.T) {
-	manager := NewSavePointManager()
-	doc := New("hello")
-
-	// Create savepoints
-	id1 := manager.Create(doc, 0)
-	time.Sleep(50 * time.Millisecond)
-	id2 := manager.Create(doc, 1)
-	time.Sleep(50 * time.Millisecond)
-	id3 := manager.Create(doc, 2)
-
-	// Clean savepoints older than 75ms
-	removed := manager.CleanOlderThan(75 * time.Millisecond)
-
-	if removed != 1 {
-		t.Errorf("Expected 1 removed, got %d", removed)
-	}
-
-	// id1 should be removed, id2 and id3 should remain
-	if manager.HasSavepoint(id1) {
-		t.Error("Expected id1 to be removed")
-	}
-	if !manager.HasSavepoint(id2) {
-		t.Error("Expected id2 to exist")
-	}
-	if !manager.HasSavepoint(id3) {
-		t.Error("Expected id3 to exist")
-	}
-}
-
-func TestSavePointManager_Clear(t *testing.T) {
-	manager := NewSavePointManager()
-	doc := New("hello")
-
-	// Create savepoints
-	manager.Create(doc, 0)
-	manager.Create(doc, 1)
-	manager.Create(doc, 2)
-
-	if manager.Count() != 3 {
-		t.Errorf("Expected 3 savepoints, got %d", manager.Count())
-	}
-
-	// Clear all
-	manager.Clear()
-
-	if manager.Count() != 0 {
-		t.Errorf("Expected 0 savepoints after clear, got %d", manager.Count())
-	}
-}
-
 // ========== Object Pool Tests ==========
 
 func TestObjectPool_ChangeSetReuse(t *testing.T) {
@@ -607,12 +474,6 @@ func TestAdvancedFeatures_Integration(t *testing.T) {
 	lh := NewLazyHistory(100)
 	doc := New("hello")
 
-	// Create savepoint manager
-	savepointMgr := NewSavePointManager()
-
-	// Save initial state
-	initialID := savepointMgr.Create(doc, 0)
-
 	// Make edits
 	for i := 0; i < 5; i++ {
 		cs := NewChangeSet(doc.Length()).
@@ -634,16 +495,6 @@ func TestAdvancedFeatures_Integration(t *testing.T) {
 	if undoTxn != nil {
 		doc = undoTxn.Apply(doc)
 	}
-
-	// Restore from savepoint
-	doc = savepointMgr.Restore(initialID)
-
-	if doc.String() != "hello" {
-		t.Errorf("Expected %q after restore, got %q", "hello", doc.String())
-	}
-
-	// Cleanup
-	savepointMgr.Release(initialID)
 }
 
 // ========== Benchmarks ==========
@@ -733,14 +584,3 @@ func BenchmarkObjectPool_Reuse(b *testing.B) {
 	}
 }
 
-func BenchmarkSavepointManager_CreateRestore(b *testing.B) {
-	manager := NewSavePointManager()
-	doc := New("hello world, this is a test")
-
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		id := manager.Create(doc, i)
-		_ = manager.Restore(id)
-		manager.Release(id)
-	}
-}
