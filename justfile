@@ -124,9 +124,9 @@ info:
     @echo "Module: github.com/texere-ot"
     @echo ""
     @echo "Packages:"
-    @echo "  - pkg/concordia (OT)"
+    @echo "  - pkg/ot (OT)"
     @echo "  - pkg/rope (Rope)"
-    @echo "  - pkg/document (Document)"
+    @echo "  - pkg/concordia (Document)"
 
 # Watch tests (requires entr)
 watch-test:
