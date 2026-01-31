@@ -3,14 +3,80 @@
 // A Rope is a balanced binary tree (B-tree) representation of a string,
 // optimized for efficient insertions and deletions in large texts.
 //
-// Key properties:
+// # When to Use Rope vs String
+//
+// Use Rope when:
+// - Working with large documents (10KB+)
+// - Performing many insert/delete operations (especially in middle of document)
+// - Need frequent slicing without copying
+// - Building text incrementally
+//
+// Use string when:
+// - Working with small documents (< 10KB)
+// - Performing mostly read operations
+// - Need simplicity over performance
+// - Document size is fixed
+//
+// # Performance Characteristics
+//
+// All operations are O(log n) where n is the number of nodes in the tree,
+// not the document length. In practice, this means operations are very fast
+// even for very large documents.
+//
+// Operation | Time Complexity | Space Complexity | Notes
+// -----------|----------------|-------------------|-------
+// New(text) | O(1) | O(len(text)) | Initial creation
+// Length() | O(1) | O(1) | Cached value
+// Slice() | O(log n + k) | O(k) | k = slice length
+// Insert() | O(log n) | O(1) | Minimal copying
+// Delete() | O(log n) | O(1) | Minimal copying
+// Concat() | O(1) | O(1) | Just creates new internal node
+// String() | O(n) | O(n) | Converts full document
+// Clone() | O(1) | O(1) | No copying needed (immutable)
+//
+// # Thread Safety
+//
+// Rope is IMMUTABLE and SAFE FOR CONCURRENT USE:
+// - Multiple goroutines can read the same Rope simultaneously without synchronization
+// - All operations (Insert, Delete, etc.) return new Rope instances
+// - The original Rope is never modified
+// - No locks needed for read-only access
+//
+// Example:
+//
+//	// Safe concurrent access
+//	var r *rope.Rope = rope.New("Hello World")
+//	var wg sync.WaitGroup
+//	wg.Add(10)
+//	for i := 0; i < 10; i++ {
+//		go func() {
+//			defer wg.Done()
+//			// Read operations are safe
+//			s := r.String()
+//			fmt.Println(s)
+//		}()
+//	}
+//	wg.Wait()
+//
+// # Key Properties
+//
 // - Immutable: All operations return new Ropes, originals are unchanged
 // - Efficient: O(log n) for insert/delete/slice operations
 // - Memory: Minimal copying due to tree structure
+// - Unicode-aware: Correctly handles UTF-8 and grapheme clusters
 //
-// This implementation is based on:
+// # This Implementation
+//
+// Based on:
 // - "Ropes: an Alternative to Strings" by Boehm, Atkinson, and Plass (1995)
 // - The ropey crate in Rust (used by Helix editor)
+//
+// # Basic Usage
+//
+//	r := rope.New("Hello World")
+//	r, _ = r.Insert(5, " Beautiful ")  // r is immutable, original unchanged
+//	r, _ = r.Delete(16, 26)            // Remove "Beautiful "
+//	fmt.Println(r.String())            // "Hello World"
 package rope
 
 import (
@@ -18,7 +84,39 @@ import (
 	"unicode/utf8"
 )
 
-// Rope represents an immutable string as a balanced tree.
+// Rope represents an immutable string as a balanced binary tree.
+//
+// Rope provides efficient operations for large text editing:
+// - O(log n) insertions, deletions, and slicing
+// - Minimal copying due to tree structure
+// - Cached length for O(1) access
+// - Safe for concurrent read access (immutable)
+//
+// # Thread Safety
+//
+// Rope is immutable and safe for concurrent use. All operations return
+// a new Rope instance, leaving the original unchanged. Multiple goroutines
+// can read from the same Rope simultaneously without synchronization.
+//
+// # Performance
+//
+// - Length queries: O(1) (cached)
+// - Slice: O(log n + k) where k is slice length
+// - Insert/Delete: O(log n) with minimal allocation
+// - Concat: O(1)
+// - String/Bytes: O(n) to convert entire document
+//
+// # Memory Usage
+//
+// Rope uses more memory than string for small texts due to tree overhead.
+// For documents < 10KB, consider using string instead.
+//
+// # Examples
+//
+//	r := rope.New("Hello World")
+//	r, _ = r.Insert(5, " Beautiful")   // "Hello Beautiful World"
+//	r, _ = r.Delete(5, 16)              // "Hello World"
+//	s, _ := r.Slice(0, 5)               // "Hello"
 type Rope struct {
 	root RopeNode
 	// Cached values for O(1) access
@@ -119,6 +217,16 @@ func (n *InternalNode) IsLeaf() bool {
 // ========== Rope Constructors ==========
 
 // New creates a Rope from the given string.
+//
+// The returned rope is empty if text is "". For non-empty text,
+// this creates a single leaf node containing the entire string.
+//
+// Performance: O(1) time, O(len(text)) space
+//
+// Example:
+//
+//	r := rope.New("Hello World")
+//	fmt.Println(r.String()) // "Hello World"
 func New(text string) *Rope {
 	if text == "" {
 		return Empty()
@@ -132,6 +240,18 @@ func New(text string) *Rope {
 }
 
 // Empty returns an empty Rope.
+//
+// Returns an empty rope that can be used as a starting point for
+// building up content through Insert or Concat operations.
+//
+// Performance: O(1) time and space
+//
+// Example:
+//
+//	r := rope.Empty()
+//	r, _ = r.Insert(0, "Hello")
+//	r, _ = r.Insert(5, " World")
+//	fmt.Println(r.String()) // "Hello World"
 func Empty() *Rope {
 	return &Rope{
 		root:   &LeafNode{text: ""},
@@ -143,6 +263,10 @@ func Empty() *Rope {
 // ========== Query Operations ==========
 
 // Length returns the number of characters (Unicode code points) in the rope.
+//
+// This is a cached O(1) operation. For byte length, use LengthBytes().
+//
+// Performance: O(1) time and space
 func (r *Rope) Length() int {
 	if r == nil {
 		return 0
