@@ -4,7 +4,7 @@ import (
 	"unicode"
 )
 
-// WordBoundary finds word boundaries in the document.
+// WordBoundary finds word boundaries in the concordia.
 type WordBoundary struct {
 	rope *Rope
 }

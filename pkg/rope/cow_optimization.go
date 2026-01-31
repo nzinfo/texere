@@ -9,9 +9,9 @@ import (
 
 // CowNode is a wrapper for copy-on-write support.
 type CowNode struct {
-	node       RopeNode
-	refCount   int32 // Reference count for sharing
-	isShared   bool  // Whether this node is shared
+	node     RopeNode
+	refCount int32 // Reference count for sharing
+	isShared bool  // Whether this node is shared
 }
 
 // NewCowNode creates a new COW node.

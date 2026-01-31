@@ -83,8 +83,9 @@ func (b *RopeBuilder) Append(text string) *RopeBuilder {
 // Performance improvement: 30-40% reduction in allocations for FromReader.
 //
 // Example:
-//   buf := []byte("Hello World")
-//   builder.AppendBytes(buf)  // No allocation, vs builder.Append(string(buf))
+//
+//	buf := []byte("Hello World")
+//	builder.AppendBytes(buf)  // No allocation, vs builder.Append(string(buf))
 func (b *RopeBuilder) AppendBytes(data []byte) *RopeBuilder {
 	if len(data) == 0 {
 		return b

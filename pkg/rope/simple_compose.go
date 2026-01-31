@@ -145,4 +145,3 @@ func SimpleCompose(first, second *ChangeSet, original *Rope) *ChangeSet {
 	result.lenAfter = finalDoc.Length()
 	return result
 }
-

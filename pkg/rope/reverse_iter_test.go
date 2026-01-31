@@ -271,38 +271,38 @@ func TestReverseIterator_ToRunes(t *testing.T) {
 // TestReverseIterator_Skip tests Skip method
 func TestReverseIterator_Skip(t *testing.T) {
 	tests := []struct {
-		name          string
-		text          string
-		skipCount     int
-		expectedRune  rune
+		name            string
+		text            string
+		skipCount       int
+		expectedRune    rune
 		expectedHasNext bool
 	}{
 		{
-			name:          "Skip 2 characters",
-			text:          "Hello",
-			skipCount:     2,
-			expectedRune:  'l',
+			name:            "Skip 2 characters",
+			text:            "Hello",
+			skipCount:       2,
+			expectedRune:    'l',
 			expectedHasNext: true,
 		},
 		{
-			name:          "Skip all",
-			text:          "Hi",
-			skipCount:     2,
-			expectedRune:  0,
+			name:            "Skip all",
+			text:            "Hi",
+			skipCount:       2,
+			expectedRune:    0,
 			expectedHasNext: false,
 		},
 		{
-			name:          "Skip zero",
-			text:          "Test",
-			skipCount:     0,
-			expectedRune:  't',
+			name:            "Skip zero",
+			text:            "Test",
+			skipCount:       0,
+			expectedRune:    't',
 			expectedHasNext: true,
 		},
 		{
-			name:          "Skip negative",
-			text:          "Hello",
-			skipCount:     -1,
-			expectedRune:  'o',
+			name:            "Skip negative",
+			text:            "Hello",
+			skipCount:       -1,
+			expectedRune:    'o',
 			expectedHasNext: true,
 		},
 	}
@@ -399,16 +399,16 @@ func TestReverseIterator_CharsAtReverse(t *testing.T) {
 			expectedRune: 'o',
 		},
 		{
-			name:         "Negative position",
-			text:         "Hello",
-			startPos:     -1,
-			expectPanic:  true,
+			name:        "Negative position",
+			text:        "Hello",
+			startPos:    -1,
+			expectPanic: true,
 		},
 		{
-			name:         "Beyond end",
-			text:         "Hello",
-			startPos:     10,
-			expectPanic:  true,
+			name:        "Beyond end",
+			text:        "Hello",
+			startPos:    10,
+			expectPanic: true,
 		},
 	}
 

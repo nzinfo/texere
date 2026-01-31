@@ -53,11 +53,11 @@ func TestSlice_UnicodeRange(t *testing.T) {
 // TestSlice_MultiByteChar tests slicing at multi-byte character boundaries
 func TestSlice_MultiByteCharBoundary(t *testing.T) {
 	r := New("Hello 世界")
-	
+
 	// Slice from 0 to 6 (includes "Hello " and first byte of "世")
 	result := r.Slice(0, 6)
 	assert.Equal(t, "Hello ", result)
-	
+
 	// Slice from 6 to end (should be valid UTF-8)
 	result = r.Slice(6, r.Length())
 	assert.Equal(t, "世界", result)
@@ -81,7 +81,7 @@ func TestSlice_InvalidRanges(t *testing.T) {
 func TestSlice_LargeText(t *testing.T) {
 	text := "Hello World"
 	r := New(text)
-	
+
 	// Multiple slices should all work
 	for i := 0; i <= r.Length(); i++ {
 		for j := i; j <= r.Length(); j++ {
@@ -108,15 +108,15 @@ func TestSlice_LargeText(t *testing.T) {
 // TestRange_CharRange tests getting range by character indices
 func TestRange_CharRange(t *testing.T) {
 	r := New("Hello World")
-	
+
 	// Get char at position 0
 	ch := r.CharAt(0)
 	assert.Equal(t, 'H', ch)
-	
+
 	// Get char at position 6
 	ch = r.CharAt(6)
 	assert.Equal(t, 'W', ch)
-	
+
 	// Get char at last position
 	ch = r.CharAt(r.Length() - 1)
 	assert.Equal(t, 'd', ch)
@@ -125,15 +125,15 @@ func TestRange_CharRange(t *testing.T) {
 // TestRange_CharAtByte tests getting char at byte position
 func TestRange_CharAtByte(t *testing.T) {
 	r := New("Hello World")
-	
+
 	// Byte 0 should be 'H'
 	ch := r.ByteAt(0)
 	assert.Equal(t, byte('H'), ch)
-	
+
 	// Byte 6 should be 'W'
 	ch = r.ByteAt(6)
 	assert.Equal(t, byte('W'), ch)
-	
+
 	// Last byte
 	ch = r.ByteAt(r.Size() - 1)
 	assert.Equal(t, byte('d'), ch)
@@ -143,7 +143,7 @@ func TestRange_CharAtByte(t *testing.T) {
 func TestRange_GetLine(t *testing.T) {
 	text := "Line 1\nLine 2\nLine 3"
 	r := New(text)
-	
+
 	lines := r.Lines()
 	assert.Equal(t, 3, len(lines))
 	assert.Equal(t, "Line 1\n", lines[0])
@@ -174,19 +174,19 @@ func TestRange_LineAt(t *testing.T) {
 func TestConversions_CharToByte(t *testing.T) {
 	text := "Hello 世界"
 	r := New(text)
-	
+
 	// Position 0 -> byte 0
 	byteIdx := r.charToByte(0)
 	assert.Equal(t, 0, byteIdx)
-	
+
 	// Position 5 (end of "Hello") -> byte 5
 	byteIdx = r.charToByte(5)
 	assert.Equal(t, 5, byteIdx)
-	
+
 	// Position 6 (first char of "世界") -> byte 6
 	byteIdx = r.charToByte(6)
 	assert.Equal(t, 6, byteIdx)
-	
+
 	// Position 7 (second char of "世界") -> byte 9
 	byteIdx = r.charToByte(7)
 	assert.Equal(t, 9, byteIdx)
@@ -196,27 +196,27 @@ func TestConversions_CharToByte(t *testing.T) {
 func TestConversions_ByteToChar(t *testing.T) {
 	text := "Hello 世界"
 	r := New(text)
-	
+
 	// Byte 0 -> char 0
 	charIdx := r.byteToChar(0)
 	assert.Equal(t, 0, charIdx)
-	
+
 	// Byte 5 -> char 5
 	charIdx = r.byteToChar(5)
 	assert.Equal(t, 5, charIdx)
-	
+
 	// Byte 6 -> char 6
 	charIdx = r.byteToChar(6)
 	assert.Equal(t, 6, charIdx)
-	
+
 	// Byte 7 (middle of "世") -> char 6
 	charIdx = r.byteToChar(7)
 	assert.Equal(t, 6, charIdx)
-	
+
 	// Byte 8 (end of "世") -> char 6
 	charIdx = r.byteToChar(8)
 	assert.Equal(t, 6, charIdx)
-	
+
 	// Byte 9 -> char 7
 	charIdx = r.byteToChar(9)
 	assert.Equal(t, 7, charIdx)
@@ -258,7 +258,7 @@ func TestLineInfo_LineAtChar(t *testing.T) {
 func TestSliceConsistency_SliceMatchesString(t *testing.T) {
 	text := "Hello, World! 🌍"
 	r := New(text)
-	
+
 	// Full slice should match String()
 	slice := r.Slice(0, r.Length())
 	assert.Equal(t, r.String(), slice)
@@ -285,11 +285,11 @@ func TestSliceConsistency_MultipleSlices(t *testing.T) {
 // TestSlice_ZeroLength tests zero-length slices
 func TestSlice_ZeroLength(t *testing.T) {
 	r := New("Hello")
-	
+
 	// Start == End
 	slice := r.Slice(3, 3)
 	assert.Equal(t, "", slice)
-	
+
 	// Full range
 	slice = r.Slice(0, 0)
 	assert.Equal(t, "", slice)

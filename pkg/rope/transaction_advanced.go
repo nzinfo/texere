@@ -51,9 +51,9 @@ func (a Assoc) String() string {
 
 // Position represents a position in the document with association information.
 type Position struct {
-	Pos    int    // Position in the document
-	Assoc  Assoc  // How to adjust this position after edits
-	Offset int    // Offset from the position (for sticky positioning)
+	Pos    int   // Position in the document
+	Assoc  Assoc // How to adjust this position after edits
+	Offset int   // Offset from the position (for sticky positioning)
 }
 
 // NewPosition creates a new position with the given position and association.
@@ -76,10 +76,10 @@ func NewPositionWithOffset(pos int, assoc Assoc, offset int) *Position {
 // PositionMapper maps positions through a changeset.
 // This handles cursor position updates after edits.
 type PositionMapper struct {
-	changeset     *ChangeSet
-	positions     []*Position
-	document      *Rope     // Optional: document for word boundary detection
-	wordBoundary  *WordBoundary
+	changeset    *ChangeSet
+	positions    []*Position
+	document     *Rope // Optional: document for word boundary detection
+	wordBoundary *WordBoundary
 }
 
 // NewPositionMapper creates a new position mapper for the given changeset.

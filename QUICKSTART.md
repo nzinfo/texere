@@ -5,7 +5,7 @@ This guide will help you get started with the Concordia OT library in 5 minutes.
 ## Installation
 
 ```bash
-go get github.com/texere-ot
+go get github.com/coreseekdev/texere
 ```
 
 ## Your First OT Operation
@@ -17,12 +17,12 @@ package main
 
 import (
     "fmt"
-    "github.com/coreseekdev/texere/pkg/concordia"
+    "github.com/coreseekdev/texere/pkg/ot"
 )
 
 func main() {
     // Create an operation that inserts "Hello" at position 0
-    op := concordia.NewBuilder().
+    op := ot.NewBuilder().
         Insert("Hello").
         Build()
 
@@ -44,7 +44,7 @@ func main() {
 // 2. Inserts "Hello"
 // 3. Skips next 3 characters
 // 4. Deletes 2 characters
-op := concordia.NewBuilder().
+op := ot.NewBuilder().
     Retain(5).
     Insert("Hello").
     Retain(3).
@@ -62,13 +62,13 @@ fmt.Println(result) // Output: _____HelloXYZ_____
 // Two users editing at the same time
 
 // User A inserts "Hello" at position 0
-userAOp := concordia.NewBuilder().Insert("Hello").Build()
+userAOp := ot.NewBuilder().Insert("Hello").Build()
 
 // User B inserts "World" at position 0
-userBOp := concordia.NewBuilder().Insert("World").Build()
+userBOp := ot.NewBuilder().Insert("World").Build()
 
 // Transform to resolve the conflict
-transformedA, transformedB, _ := concordia.Transform(userAOp, userBOp)
+transformedA, transformedB, _ := ot.Transform(userAOp, userBOp)
 
 // Both users apply the transformed operations
 doc := ""
@@ -83,10 +83,10 @@ fmt.Println(docB) // Output: HelloWorld or WorldHello (consistent)
 
 ```go
 // Create an undo manager
-um := concordia.NewUndoManager(50)
+um := ot.NewUndoManager(50)
 
 // Apply an operation
-op := concordia.NewBuilder().Insert("Hello").Build()
+op := ot.NewBuilder().Insert("Hello").Build()
 doc, _ := op.Apply(doc)
 fmt.Println(doc) // Output: Hello
 
@@ -95,13 +95,13 @@ inverse, _ := op.Invert("")
 um.Add(inverse, true)
 
 // Undo
-um.PerformUndo(func(op *concordia.Operation) {
+um.PerformUndo(func(op *ot.Operation) {
     doc, _ = op.Apply(doc)
 })
 fmt.Println(doc) // Output: (empty)
 
 // Redo
-um.PerformRedo(func(op *concordia.Operation) {
+um.PerformRedo(func(op *ot.Operation) {
     doc, _ = op.Apply(doc)
 })
 fmt.Println(doc) // Output: Hello
@@ -112,7 +112,7 @@ fmt.Println(doc) // Output: Hello
 ### Pattern 1: Building Operations Step by Step
 
 ```go
-builder := concordia.NewBuilder()
+builder := ot.NewBuilder()
 
 // Add operations based on user input
 if userInserted {
@@ -132,14 +132,14 @@ op := builder.Build()
 ### Pattern 2: Applying Operations to Documents
 
 ```go
-import "github.com/texere-ot/pkg/document"
+import "github.com/coreseekdev/texere/pkg/ot"
 
 // Using string (simple)
 doc := "Hello World"
 result, _ := op.Apply(doc)
 
 // Using Document interface (flexible)
-docImpl := document.NewStringDocument("Hello World")
+docImpl := concordia.NewStringDocument("Hello World")
 resultDoc, _ := op.ApplyToDocument(docImpl)
 fmt.Println(resultDoc.String())
 ```
@@ -148,13 +148,13 @@ fmt.Println(resultDoc.String())
 
 ```go
 // First operation: Insert "Hello"
-op1 := concordia.NewBuilder().Insert("Hello ").Build()
+op1 := ot.NewBuilder().Insert("Hello ").Build()
 
 // Second operation: Insert "World"
-op2 := concordia.NewBuilder().Retain(6).Insert("World").Build()
+op2 := ot.NewBuilder().Retain(6).Insert("World").Build()
 
 // Compose into single operation
-composed, _ := concordia.Compose(op1, op2)
+composed, _ := ot.Compose(op1, op2)
 
 // Apply composed operation
 result, _ := composed.Apply("")
@@ -165,10 +165,10 @@ fmt.Println(result) // Output: Hello World
 
 ```go
 // Create client
-client := concordia.NewClient()
+client := ot.NewClient()
 
 // User makes local edit
-localOp := concordia.NewBuilder().Insert("Hello").Build()
+localOp := ot.NewBuilder().Insert("Hello").Build()
 doc, _ = client.ApplyClient(localOp)
 
 // Send to server
@@ -189,13 +189,13 @@ The library includes comprehensive tests. Run them:
 
 ```bash
 # Run all tests
-go test ./pkg/concordia/... -v
+go test ./pkg/ot/... -v
 
 # Run specific test
-go test ./pkg/concordia/... -run TestOperation_Apply_Random -v
+go test ./pkg/ot/... -run TestOperation_Apply_Random -v
 
 # Run with coverage
-go test -cover ./pkg/concordia/...
+go test -cover ./pkg/ot/...
 ```
 
 ## Key Concepts
@@ -222,7 +222,7 @@ go test -cover ./pkg/concordia/...
 The builder automatically merges adjacent operations:
 
 ```go
-op := concordia.NewBuilder().
+op := ot.NewBuilder().
     Retain(5).
     Retain(3).      // Automatically merged
     Insert("Hello").
@@ -237,10 +237,10 @@ op := concordia.NewBuilder().
 Operations are immutable and safe for concurrent use:
 
 ```go
-op1 := concordia.NewBuilder().Insert("Hello").Build()
+op1 := ot.NewBuilder().Insert("Hello").Build()
 
 // This creates a NEW operation, doesn't modify op1
-op2 := concordia.NewBuilder().Insert("World").Build()
+op2 := ot.NewBuilder().Insert("World").Build()
 
 // Both are independent
 ```
@@ -253,7 +253,7 @@ Always check for errors:
 result, err := op.Apply(doc)
 if err != nil {
     // Handle error
-    if err == concordia.ErrInvalidBaseLength {
+    if err == ot.ErrInvalidBaseLength {
         fmt.Println("Operation doesn't match document length")
     } else {
         fmt.Println("Error:", err)
@@ -271,7 +271,7 @@ if err != nil {
 
 ## Next Steps
 
-1. Read the full documentation: `pkg/concordia/README.md`
+1. Read the full documentation: `pkg/ot/README.md`
 2. Explore the examples: `examples/`
 3. Review the test files for more usage patterns
 4. Integrate into your Texere editor
@@ -284,7 +284,7 @@ This means you're trying to apply an operation to a document with the wrong leng
 
 ```go
 // Wrong: operation expects 10 characters, document has 5
-op := concordia.NewBuilder().Retain(10).Build()
+op := ot.NewBuilder().Retain(10).Build()
 result, err := op.Apply("short") // Error!
 
 // Right: document length matches operation baseLength
@@ -297,22 +297,22 @@ Transform requires both operations to have the same baseLength:
 
 ```go
 // Wrong: different baseLength
-op1 := concordia.NewBuilder().Retain(5).Build()
-op2 := concordia.NewBuilder().Retain(10).Build()
-_, _, err := concordia.Transform(op1, op2) // Error!
+op1 := ot.NewBuilder().Retain(5).Build()
+op2 := ot.NewBuilder().Retain(10).Build()
+_, _, err := ot.Transform(op1, op2) // Error!
 
 // Right: same baseLength
-op1 := concordia.NewBuilder().Retain(10).Build()
-op2 := concordia.NewBuilder().Insert("Hello").Build()
-_, _, err := concordia.Transform(op1, op2) // OK!
+op1 := ot.NewBuilder().Retain(10).Build()
+op2 := ot.NewBuilder().Insert("Hello").Build()
+_, _, err := ot.Transform(op1, op2) // OK!
 ```
 
 ## Resources
 
-- **API Documentation**: `pkg/concordia/README.md`
+- **API Documentation**: `pkg/ot/README.md`
 - **Implementation Report**: `INITIALIZATION_REPORT.md`
-- **Source Code**: `pkg/concordia/*.go`
-- **Tests**: `pkg/concordia/*_test.go`
+- **Source Code**: `pkg/ot/*.go`
+- **Tests**: `pkg/ot/*_test.go`
 
 ## Support
 

@@ -512,7 +512,7 @@ func (r *Rope) ForEachWithIndex(f func(int, rune)) {
 	for it.Next() {
 		// Position() returns charPos + 1 (next position)
 		// We want the current element's index, so subtract 1
-		f(it.Position() - 1, it.Current())
+		f(it.Position()-1, it.Current())
 	}
 }
 

@@ -5,8 +5,8 @@ import "time"
 // Operation represents a single edit operation.
 type Operation struct {
 	OpType OpType
-	Length int       // For Retain and Delete
-	Text   string    // For Insert
+	Length int    // For Retain and Delete
+	Text   string // For Insert
 }
 
 // OpType represents the type of operation.
@@ -72,7 +72,7 @@ func (cs *ChangeSet) IsEmpty() bool {
 
 // finalize ensures the changeset covers the entire document by retaining
 // any remaining characters. This follows Helix's approach where changesets
-// must account for every character in the input document.
+// must account for every character in the input concordia.
 func (cs *ChangeSet) finalize() *ChangeSet {
 	// Calculate how many characters have been processed
 	processed := 0
@@ -203,9 +203,9 @@ func (cs *ChangeSet) Invert(original *Rope) *ChangeSet {
 
 // Transaction represents an atomic edit operation with optional selection state.
 type Transaction struct {
-	changeset  *ChangeSet
-	selection  *Selection  // Optional selection state
-	timestamp  time.Time
+	changeset *ChangeSet
+	selection *Selection // Optional selection state
+	timestamp time.Time
 }
 
 // NewTransaction creates a new transaction from a changeset.
@@ -390,7 +390,7 @@ func Change(doc *Rope, changes []EditOperation) *Transaction {
 		if ch.From > last {
 			cs.Retain(ch.From - last)
 		}
-		
+
 		span := ch.To - ch.From
 		if ch.Text != "" {
 			cs.Insert(ch.Text)
@@ -398,7 +398,7 @@ func Change(doc *Rope, changes []EditOperation) *Transaction {
 		} else {
 			cs.Delete(span)
 		}
-		
+
 		last = ch.To
 	}
 
@@ -460,7 +460,7 @@ func Delete(doc *Rope, deletions []Deletion) *Transaction {
 	return NewTransaction(cs)
 }
 
-// InsertAtEOF inserts text at the end of the document.
+// InsertAtEOF inserts text at the end of the concordia.
 // Returns a modified transaction with the insert operation added.
 func (t *Transaction) InsertAtEOF(text string) *Transaction {
 	if t == nil || t.changeset == nil {

@@ -1,4 +1,4 @@
-package concordia
+package ot
 
 import (
 	"sync"
@@ -138,7 +138,7 @@ func (um *UndoManager) Add(operation *Operation, compose bool) {
 // Transform transforms both undo and redo stacks against a remote operation.
 //
 // This should be called when a remote operation is received, before applying
-// it to the document. This ensures that the undo/redo history remains
+// it to the concordia. This ensures that the undo/redo history remains
 // consistent with the document state.
 //
 // Parameters:

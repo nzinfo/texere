@@ -168,8 +168,8 @@ func deleteNodeOptimized(node RopeNode, start, end int) RopeNode {
 
 	// Concatenate left and right parts
 	return &InternalNode{
-		left:  New(leftPart).root,
-		right: New(rightPart).root,
+		left:   New(leftPart).root,
+		right:  New(rightPart).root,
 		length: 0, // Will be calculated by parent
 		size:   0,
 	}

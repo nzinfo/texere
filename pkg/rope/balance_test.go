@@ -229,8 +229,8 @@ func TestOptimize(t *testing.T) {
 
 	t.Run("optimize after edits", func(t *testing.T) {
 		rope := New("Hello World")
-		rope = rope.Insert(5, " Beautiful")  // "Hello Beautiful World"
-		rope = rope.Delete(5, 16)               // Remove " Beautiful " -> "HelloWorld"
+		rope = rope.Insert(5, " Beautiful") // "Hello Beautiful World"
+		rope = rope.Delete(5, 16)           // Remove " Beautiful " -> "HelloWorld"
 
 		optimized := rope.Optimize()
 		// Optimize should only restructure the tree, not change content
@@ -365,10 +365,10 @@ func TestValidate(t *testing.T) {
 // TestSuggestedConfig tests the SuggestedConfig method.
 func TestSuggestedConfig(t *testing.T) {
 	tests := []struct {
-		name             string
-		input            string
-		expectedMinSize  int
-		expectedMaxSize  int
+		name            string
+		input           string
+		expectedMinSize int
+		expectedMaxSize int
 	}{
 		{
 			name:            "very small rope",

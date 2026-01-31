@@ -1,4 +1,4 @@
-package concordia
+package ot
 
 import (
 	"math/rand"

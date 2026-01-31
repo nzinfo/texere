@@ -268,38 +268,38 @@ func TestBytesIterator_ToBytes(t *testing.T) {
 // TestBytesIterator_Skip tests Skip method
 func TestBytesIterator_Skip(t *testing.T) {
 	tests := []struct {
-		name          string
-		text          string
-		skipCount     int
-		expectedByte  byte
+		name            string
+		text            string
+		skipCount       int
+		expectedByte    byte
 		expectedHasNext bool
 	}{
 		{
-			name:          "Skip 2 bytes",
-			text:          "Hello",
-			skipCount:     2,
-			expectedByte:  'l',
+			name:            "Skip 2 bytes",
+			text:            "Hello",
+			skipCount:       2,
+			expectedByte:    'l',
 			expectedHasNext: true,
 		},
 		{
-			name:          "Skip all",
-			text:          "Hi",
-			skipCount:     2,
-			expectedByte:  0,
+			name:            "Skip all",
+			text:            "Hi",
+			skipCount:       2,
+			expectedByte:    0,
 			expectedHasNext: false,
 		},
 		{
-			name:          "Skip zero",
-			text:          "Test",
-			skipCount:     0,
-			expectedByte:  'T',
+			name:            "Skip zero",
+			text:            "Test",
+			skipCount:       0,
+			expectedByte:    'T',
 			expectedHasNext: true,
 		},
 		{
-			name:          "Skip negative",
-			text:          "Hello",
-			skipCount:     -1,
-			expectedByte:  'H',
+			name:            "Skip negative",
+			text:            "Hello",
+			skipCount:       -1,
+			expectedByte:    'H',
 			expectedHasNext: true,
 		},
 	}
@@ -382,22 +382,22 @@ func TestBytesIterator_AtPosition(t *testing.T) {
 			expectedByte: 'H',
 		},
 		{
-			name:         "Start at end",
-			text:         "Hello",
-			startPos:     5,
-			expectPanic:  false,
+			name:        "Start at end",
+			text:        "Hello",
+			startPos:    5,
+			expectPanic: false,
 		},
 		{
-			name:         "Negative position",
-			text:         "Hello",
-			startPos:     -1,
-			expectPanic:  true,
+			name:        "Negative position",
+			text:        "Hello",
+			startPos:    -1,
+			expectPanic: true,
 		},
 		{
-			name:         "Beyond end",
-			text:         "Hello",
-			startPos:     10,
-			expectPanic:  true,
+			name:        "Beyond end",
+			text:        "Hello",
+			startPos:    10,
+			expectPanic: true,
 		},
 	}
 

@@ -251,12 +251,12 @@ func TestRopey_LineCount(t *testing.T) {
 		text     string
 		expected int
 	}{
-		{"", 0},                      // Empty rope has 0 lines
-		{"Hello", 1},                // Single line
-		{"Hello\nWorld", 2},         // Two lines
-		{"Hello\nWorld\nFoo", 3},    // Three lines
-		{"Hello\nWorld\n", 2},       // Two lines (ending with \n)
-		{"\nHello\nWorld\n", 3},     // Three lines
+		{"", 0},                  // Empty rope has 0 lines
+		{"Hello", 1},             // Single line
+		{"Hello\nWorld", 2},      // Two lines
+		{"Hello\nWorld\nFoo", 3}, // Three lines
+		{"Hello\nWorld\n", 2},    // Two lines (ending with \n)
+		{"\nHello\nWorld\n", 3},  // Three lines
 	}
 
 	for _, tt := range tests {
@@ -577,7 +577,7 @@ func AssertIntegrity(t *testing.T, r *Rope) {
 
 	// Check depth is reasonable
 	depth := calculateDepth(r.root)
-	maxDepth := maxInt(64, r.Length() / 100) // Reasonable depth
+	maxDepth := maxInt(64, r.Length()/100) // Reasonable depth
 	assert.True(t, depth <= maxDepth, "Tree depth %d exceeds reasonable bound %d", depth, maxDepth)
 }
 

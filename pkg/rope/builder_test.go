@@ -105,10 +105,10 @@ func TestBuilderAppendBytes(t *testing.T) {
 // TestBuilderInsert tests the Insert method.
 func TestBuilderInsert(t *testing.T) {
 	tests := []struct {
-		name     string
-		initial  string
-		inserts  []struct {
-			pos int
+		name    string
+		initial string
+		inserts []struct {
+			pos  int
 			text string
 		}
 		expected string
@@ -117,7 +117,7 @@ func TestBuilderInsert(t *testing.T) {
 			name:    "insert at beginning",
 			initial: "World",
 			inserts: []struct {
-				pos int
+				pos  int
 				text string
 			}{{0, "Hello "}},
 			expected: "Hello World",
@@ -126,7 +126,7 @@ func TestBuilderInsert(t *testing.T) {
 			name:    "insert at end",
 			initial: "Hello",
 			inserts: []struct {
-				pos int
+				pos  int
 				text string
 			}{{5, " World"}},
 			expected: "Hello World",
@@ -135,7 +135,7 @@ func TestBuilderInsert(t *testing.T) {
 			name:    "insert in middle",
 			initial: "Hi World",
 			inserts: []struct {
-				pos int
+				pos  int
 				text string
 			}{{3, "Hello "}},
 			expected: "Hi Hello World",
@@ -144,7 +144,7 @@ func TestBuilderInsert(t *testing.T) {
 			name:    "multiple inserts",
 			initial: "AC",
 			inserts: []struct {
-				pos int
+				pos  int
 				text string
 			}{{1, "B"}, {3, "D"}},
 			expected: "ABCD",
@@ -759,9 +759,9 @@ func TestBuilderEdgeCases(t *testing.T) {
 
 	t.Run("insert at bounds", func(t *testing.T) {
 		builder := NewBuilderFromRope(New("AB"))
-		builder.Insert(0, "X")  // At beginning
-		builder.Insert(2, "Y")  // In middle
-		builder.Insert(4, "Z")  // At end
+		builder.Insert(0, "X") // At beginning
+		builder.Insert(2, "Y") // In middle
+		builder.Insert(4, "Z") // At end
 		rope := builder.Build()
 		if rope.String() != "XAYBZ" {
 			t.Errorf("Expected 'XAYBZ', got %q", rope.String())

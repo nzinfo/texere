@@ -1,9 +1,9 @@
-// Package document provides document abstractions for OT operations.
+// Package concordia provides document abstractions for OT operations.
 //
-// The document package defines interfaces for text documents that can be
+// The concordia package defines interfaces for text documents that can be
 // manipulated by OT operations. This allows different underlying representations
 // (string, rope, piece table, etc.) to be used interchangeably.
-package document
+package concordia
 
 // Document represents a text document that can be manipulated by OT operations.
 //
@@ -40,7 +40,7 @@ type Document interface {
 	// This is useful for serialization or I/O operations.
 	Bytes() []byte
 
-	// Clone creates a deep copy of the document.
+	// Clone creates a deep copy of the concordia.
 	// The returned document is independent and can be modified without
 	// affecting the original.
 	Clone() Document

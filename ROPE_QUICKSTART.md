@@ -7,7 +7,7 @@ This guide will help you get started with the Rope data structure implementation
 ## Installation
 
 ```bash
-go get github.com/texere-ot
+go get github.com/coreseekdev/texere
 ```
 
 ## Your First Rope
@@ -19,7 +19,7 @@ package main
 
 import (
     "fmt"
-    "github.com/texere-ot/pkg/rope"
+    "github.com/coreseekdev/texere/pkg/rope"
 )
 
 func main() {

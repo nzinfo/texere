@@ -188,16 +188,16 @@ func TestFixTree_ComplexMutations(t *testing.T) {
 	builder := NewBuilder()
 	for i := 0; i < 100; i++ {
 		builder.Append("Test Line ")
-		builder.Append(string(rune('0'+i%10)))
+		builder.Append(string(rune('0' + i%10)))
 		builder.Append("\n")
 	}
 	r := builder.Build()
 
 	// Perform complex sequence of operations
 	operations := []struct {
-		op string
+		op         string
 		arg1, arg2 int
-		text string
+		text       string
 	}{
 		{"delete", 10, 20, ""},
 		{"insert", 15, 0, "NEW "},
@@ -247,7 +247,7 @@ func TestFixTree_DeleteLargeRange(t *testing.T) {
 	originalLen := r.Length()
 
 	// Delete most of it
-	r = r.Delete(100, originalLen - 100)
+	r = r.Delete(100, originalLen-100)
 
 	// Verify integrity
 	assert.True(t, r.Length() < originalLen)

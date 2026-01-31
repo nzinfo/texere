@@ -7,7 +7,7 @@ import (
 
 // ObjectPool provides reusable objects to reduce allocations.
 type ObjectPool struct {
-	changesets sync.Pool
+	changesets   sync.Pool
 	transactions sync.Pool
 }
 
@@ -66,20 +66,20 @@ var globalPool = NewObjectPool()
 
 // LazyTransaction is a transaction that defers expensive operations until needed.
 type LazyTransaction struct {
-	changeset     *ChangeSet
-	original      *Rope
-	inversion     *ChangeSet
+	changeset           *ChangeSet
+	original            *Rope
+	inversion           *ChangeSet
 	inversionCalculated bool
 	originalCalculated  bool
-	mu            sync.RWMutex
+	mu                  sync.RWMutex
 }
 
 // NewLazyTransaction creates a new lazy transaction.
 func NewLazyTransaction(changeset *ChangeSet) *LazyTransaction {
 	return &LazyTransaction{
-		changeset:          changeset,
+		changeset:           changeset,
 		inversionCalculated: false,
-		originalCalculated: false,
+		originalCalculated:  false,
 	}
 }
 
@@ -125,10 +125,10 @@ func (lt *LazyTransaction) CachedInversion() *ChangeSet {
 
 // LazyHistory is a history manager with lazy evaluation and caching.
 type LazyHistory struct {
-	history     *History
-	cache       map[int]*Transaction
-	cacheSize   int
-	mu          sync.RWMutex
+	history   *History
+	cache     map[int]*Transaction
+	cacheSize int
+	mu        sync.RWMutex
 }
 
 // NewLazyHistory creates a new lazy history manager.

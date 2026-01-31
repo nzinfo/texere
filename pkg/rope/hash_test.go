@@ -310,8 +310,8 @@ func TestHash_HashString(t *testing.T) {
 // TestHash_HashCode32 tests 32-bit hash code
 func TestHash_HashCode32_Detailed(t *testing.T) {
 	tests := []struct {
-		name     string
-		text     string
+		name string
+		text string
 	}{
 		{
 			name: "Simple ASCII",
@@ -365,7 +365,7 @@ func TestHash_CombineHash(t *testing.T) {
 		{
 			name:     "Multiple values",
 			codes:    []uint32{1, 2, 3},
-			expected: (1*31 + 2)*31 + 3,
+			expected: (1*31+2)*31 + 3,
 		},
 	}
 
@@ -397,7 +397,7 @@ func TestHash_CombineHash64(t *testing.T) {
 		{
 			name:     "Multiple values",
 			codes:    []uint64{1, 2, 3},
-			expected: (1*31 + 2)*31 + 3,
+			expected: (1*31+2)*31 + 3,
 		},
 	}
 
@@ -656,15 +656,15 @@ func TestHash_RollingHasher(t *testing.T) {
 	r := New("Hello World")
 
 	tests := []struct {
-		name      string
+		name       string
 		windowSize int
 	}{
 		{
-			name:      "Small window",
+			name:       "Small window",
 			windowSize: 3,
 		},
 		{
-			name:      "Full window",
+			name:       "Full window",
 			windowSize: r.Length(),
 		},
 	}

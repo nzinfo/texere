@@ -1,4 +1,4 @@
-package concordia
+package ot
 
 // ClientState represents the state of an OT client.
 type ClientState int
@@ -29,12 +29,12 @@ const (
 //	// Send to server
 //	sendOp := client.OutgoingOperation()
 type Client struct {
-	state         ClientState
-	revision      int
-	document      string // Current document state
-	clientOp      *Operation
-	bufferOp      *Operation
-	serverOps     []*Operation // Server operations since last sync
+	state     ClientState
+	revision  int
+	document  string // Current document state
+	clientOp  *Operation
+	bufferOp  *Operation
+	serverOps []*Operation // Server operations since last sync
 }
 
 // NewClient creates a new OT client.
@@ -107,7 +107,7 @@ func (c *Client) ApplyClient(op *Operation) (string, error) {
 // ApplyServer applies a server-side operation.
 //
 // This transforms the server operation against any pending client
-// operations and applies it to the document.
+// operations and applies it to the concordia.
 //
 // Parameters:
 //   - revision: the revision number of the server operation

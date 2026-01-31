@@ -110,17 +110,17 @@ func UTF16LowSurrogate(r rune) uint16 {
 
 // DecodeUTF16SurrogatePair decodes a high and low surrogate into a rune.
 func DecodeUTF16SurrogatePair(high, low uint16) rune {
-	return rune((uint32(high-0xD800)<<10) + uint32(low-0xDC00) + 0x10000)
+	return rune((uint32(high-0xD800) << 10) + uint32(low-0xDC00) + 0x10000)
 }
 
 // ========== UTF-16 Iteration ==========
 
 // UTF16Iterator iterates over UTF-16 code units.
 type UTF16Iterator struct {
-	rope      *Rope
-	runeIt    *Iterator
-	hasHigh   bool // Whether we have a high surrogate pending
-	highSurr  uint16
+	rope     *Rope
+	runeIt   *Iterator
+	hasHigh  bool // Whether we have a high surrogate pending
+	highSurr uint16
 }
 
 // NewUTF16Iterator creates a new UTF-16 iterator.
@@ -129,8 +129,8 @@ func (r *Rope) NewUTF16Iterator() *UTF16Iterator {
 		return &UTF16Iterator{rope: r, runeIt: &Iterator{}, hasHigh: false}
 	}
 	return &UTF16Iterator{
-		rope:   r,
-		runeIt: r.NewIterator(),
+		rope:    r,
+		runeIt:  r.NewIterator(),
 		hasHigh: false,
 	}
 }

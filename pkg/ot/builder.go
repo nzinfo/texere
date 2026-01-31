@@ -1,4 +1,4 @@
-package concordia
+package ot
 
 // OperationBuilder builds operations with automatic optimization.
 //
@@ -19,9 +19,9 @@ package concordia
 // The builder automatically optimizes the operation sequence during construction.
 // For example, retain(5).retain(3) is automatically merged to retain(8).
 type OperationBuilder struct {
-	ops            []Op
-	baseLength     int
-	targetLength   int
+	ops             []Op
+	baseLength      int
+	targetLength    int
 	optimizeEnabled bool
 }
 
@@ -36,7 +36,7 @@ type OperationBuilder struct {
 //	op := builder.Retain(5).Insert("Hello").Build()
 func NewBuilder() *OperationBuilder {
 	return &OperationBuilder{
-		ops:            make([]Op, 0, 16), // Pre-allocate for efficiency
+		ops:             make([]Op, 0, 16), // Pre-allocate for efficiency
 		optimizeEnabled: true,
 	}
 }
@@ -49,7 +49,7 @@ func NewBuilder() *OperationBuilder {
 //   - a new OperationBuilder with optimization disabled
 func NewBuilderWithoutOpt() *OperationBuilder {
 	return &OperationBuilder{
-		ops:            make([]Op, 0, 16),
+		ops:             make([]Op, 0, 16),
 		optimizeEnabled: false,
 	}
 }

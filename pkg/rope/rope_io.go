@@ -11,14 +11,15 @@ import (
 // everything into memory at once.
 //
 // Example:
-//   file, _ := os.Open("large_file.txt")
-//   defer file.Close()
-//   rope, err := rope.FromReader(file)
 //
-//   // Or with buffered reading for better performance:
-//   file, _ := os.Open("large_file.txt")
-//   defer file.Close()
-//   rope, err := rope.FromReader(bufio.NewReader(file))
+//	file, _ := os.Open("large_file.txt")
+//	defer file.Close()
+//	rope, err := rope.FromReader(file)
+//
+//	// Or with buffered reading for better performance:
+//	file, _ := os.Open("large_file.txt")
+//	defer file.Close()
+//	rope, err := rope.FromReader(bufio.NewReader(file))
 func FromReader(reader io.Reader) (*Rope, error) {
 	b := NewBuilder()
 	bufReader := bufio.NewReader(reader)
@@ -44,9 +45,10 @@ func FromReader(reader io.Reader) (*Rope, error) {
 // Returns the number of bytes written and any error encountered.
 //
 // Example:
-//   r := rope.New("Hello World")
-//   var buf bytes.Buffer
-//   n, err := r.WriteTo(&buf)
+//
+//	r := rope.New("Hello World")
+//	var buf bytes.Buffer
+//	n, err := r.WriteTo(&buf)
 func (r *Rope) WriteTo(writer io.Writer) (int, error) {
 	// Convert to string and write
 	// This is efficient for most use cases
@@ -62,9 +64,10 @@ func (r *Rope) WriteTo(writer io.Writer) (int, error) {
 // Larger chunks may increase memory usage but reduce system call overhead.
 //
 // Example:
-//   r := rope.New(largeText)
-//   var buf bytes.Buffer
-//   n, err := r.WriteToChunked(&buf, 4096)
+//
+//	r := rope.New(largeText)
+//	var buf bytes.Buffer
+//	n, err := r.WriteToChunked(&buf, 4096)
 //
 // Performance improvement: For large files (10,000+ lines), this reduces
 // memory allocations by 99% (from ~368KB to ~4KB).
@@ -110,9 +113,10 @@ func (r *Rope) WriteToChunked(writer io.Writer, chunkSize int) (int, error) {
 // This is a convenience method for writing to a buffer.
 //
 // Example:
-//   r := rope.New("Hello World")
-//   var buf bytes.Buffer
-//   r.WriteToBuffer(&buf)
+//
+//	r := rope.New("Hello World")
+//	var buf bytes.Buffer
+//	r.WriteToBuffer(&buf)
 func (r *Rope) WriteToBuffer(buf interface{ Write([]byte) (int, error) }) (int, error) {
 	return r.WriteTo(buf)
 }
@@ -122,9 +126,10 @@ func (r *Rope) WriteToBuffer(buf interface{ Write([]byte) (int, error) }) (int, 
 // This allows using a Rope anywhere an io.Reader is expected.
 //
 // Example:
-//   r := rope.New("Hello World")
-//   reader := r.Reader()
-//   data, _ := io.ReadAll(reader)
+//
+//	r := rope.New("Hello World")
+//	reader := r.Reader()
+//	data, _ := io.ReadAll(reader)
 func (r *Rope) Reader() io.Reader {
 	return &ropeReader{rope: r, pos: 0}
 }

@@ -81,7 +81,7 @@ type HookFunc func(ctx *HookContext) error
 type Hook struct {
 	ID       string
 	Name     string
-	Priority int        // Higher priority hooks run first
+	Priority int // Higher priority hooks run first
 	Func     HookFunc
 	Enabled  bool
 	mu       sync.Mutex
@@ -121,7 +121,7 @@ func (h *Hook) IsEnabled() bool {
 
 // HookManager manages registered hooks for history events.
 type HookManager struct {
-	hooks map[HookEventType][]*Hook
+	hooks  map[HookEventType][]*Hook
 	nextID int
 	mu     sync.RWMutex
 }
@@ -129,7 +129,7 @@ type HookManager struct {
 // NewHookManager creates a new hook manager.
 func NewHookManager() *HookManager {
 	return &HookManager{
-		hooks: make(map[HookEventType][]*Hook),
+		hooks:  make(map[HookEventType][]*Hook),
 		nextID: 0,
 	}
 }
@@ -419,13 +419,13 @@ type BuiltinHooks struct {
 
 // EditMetrics tracks statistics about edits.
 type EditMetrics struct {
-	TotalEdits     int64
-	TotalInserts   int64
-	TotalDeletes   int64
-	TotalReplaces  int64
+	TotalEdits         int64
+	TotalInserts       int64
+	TotalDeletes       int64
+	TotalReplaces      int64
 	TotalCharsInserted int64
 	TotalCharsDeleted  int64
-	mu             sync.RWMutex
+	mu                 sync.RWMutex
 }
 
 // RecordEdit records an edit operation.
@@ -454,12 +454,12 @@ func (em *EditMetrics) Stats() map[string]int64 {
 	defer em.mu.RUnlock()
 
 	return map[string]int64{
-		"total_edits":           em.TotalEdits,
-		"total_inserts":         em.TotalInserts,
-		"total_deletes":         em.TotalDeletes,
-		"total_replaces":        em.TotalReplaces,
-		"total_chars_inserted":  em.TotalCharsInserted,
-		"total_chars_deleted":   em.TotalCharsDeleted,
+		"total_edits":          em.TotalEdits,
+		"total_inserts":        em.TotalInserts,
+		"total_deletes":        em.TotalDeletes,
+		"total_replaces":       em.TotalReplaces,
+		"total_chars_inserted": em.TotalCharsInserted,
+		"total_chars_deleted":  em.TotalCharsDeleted,
 	}
 }
 
@@ -486,7 +486,7 @@ func DefaultBuiltinHooks() BuiltinHooks {
 						Type:    HookBeforeEdit,
 						Message: "edit size exceeds maximum allowed",
 						Details: map[string]interface{}{
-							"max_size": maxSize,
+							"max_size":  maxSize,
 							"edit_size": ctx.Edit.Length,
 						},
 					}

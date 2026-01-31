@@ -41,7 +41,7 @@ Texere 提供了构建实时协作编辑器和文本编辑器所需的核心组�
 
 ```
 texere/
-├── pkg/concordia/   # OT 核心算法
+├── pkg/ot/   # OT 核心算法
 │   ├── operation.go     # 操作定义和实现
 │   ├── builder.go       # 操作构建器
 │   ├── transform.go     # 操作转换
@@ -55,7 +55,7 @@ texere/
 │   ├── split.go         # 分割操作
 │   ├── concat.go        # 拼接操作
 │   └── balance.go       # 重新平衡
-├── pkg/document/    # 文档接口
+├── pkg/concordia/    # 文档接口
 │   ├── document.go      # Document 接口定义
 │   └── string_document.go # String 实现
 ├── QUICKSTART.md    # OT 快速入门
@@ -67,7 +67,7 @@ texere/
 ### 安装
 
 ```bash
-go get github.com/texere-ot
+go get github.com/coreseekdev/texere
 ```
 
 ### OT 基础使用
@@ -77,12 +77,12 @@ package main
 
 import (
     "fmt"
-    "github.com/texere-ot/pkg/concordia"
+    "github.com/coreseekdev/texere/pkg/ot"
 )
 
 func main() {
     // 创建插入操作
-    op := concordia.NewBuilder().
+    op := ot.NewBuilder().
         Insert("Hello, World!").
         Build()
 
@@ -103,7 +103,7 @@ package main
 
 import (
     "fmt"
-    "github.com/texere-ot/pkg/rope"
+    "github.com/coreseekdev/texere/pkg/rope"
 )
 
 func main() {
@@ -125,7 +125,7 @@ func main() {
 
 - **[OT 快速入门](QUICKSTART.md)** - 5 分钟上手 Concordia OT 库
 - **[Rope 快速入门](ROPE_QUICKSTART.md)** - Rope 数据结构使用指南
-- **[Concordia API](pkg/concordia/README.md)** - OT API 文档
+- **[Concordia API](pkg/ot/README.md)** - OT API 文档
 - **[Rope API](pkg/rope/README.md)** - Rope API 文档
 
 ## 🧪 测试
@@ -135,7 +135,7 @@ func main() {
 go test ./...
 
 # 运行 OT 测试
-go test ./pkg/concordia/... -v
+go test ./pkg/ot/... -v
 
 # 运行 Rope 测试
 go test ./pkg/rope/... -v

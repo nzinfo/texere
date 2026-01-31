@@ -267,13 +267,13 @@ func TestChunkAtByte_Beginning(t *testing.T) {
 func TestChunkAtByte_Middle(t *testing.T) {
 	t.Skip("ChunkAtByte behavior needs clarification")
 	/*
-	r := New("Hello, World!")
+		r := New("Hello, World!")
 
-	// Find chunk at byte 7
-	chunk, _ := r.ChunkAtByte(7)
+		// Find chunk at byte 7
+		chunk, _ := r.ChunkAtByte(7)
 
-	assert.Equal(t, 7, chunk.ByteIdx)
-	assert.False(t, chunk.IsEmpty)
+		assert.Equal(t, 7, chunk.ByteIdx)
+		assert.False(t, chunk.IsEmpty)
 	*/
 }
 
@@ -286,7 +286,7 @@ func TestChunkAtByte_End(t *testing.T) {
 	chunk, _ := r.ChunkAtByte(lastByte)
 
 	assert.True(t, chunk.ByteIdx <= lastByte)
-	assert.True(t, chunk.ByteIdx + chunk.ByteLen > lastByte)
+	assert.True(t, chunk.ByteIdx+chunk.ByteLen > lastByte)
 }
 
 // ========== ChunksAtChar Tests ==========
@@ -306,13 +306,13 @@ func TestChunkAtChar_Beginning(t *testing.T) {
 func TestChunkAtChar_Middle(t *testing.T) {
 	t.Skip("ChunkAtChar behavior needs clarification")
 	/*
-	r := New("Hello, World!")
+		r := New("Hello, World!")
 
-	// Find chunk at character 7
-	chunk, _ := r.ChunkAtChar(7)
+		// Find chunk at character 7
+		chunk, _ := r.ChunkAtChar(7)
 
-	assert.Equal(t, 7, chunk.CharIdx)
-	assert.False(t, chunk.IsEmpty)
+		assert.Equal(t, 7, chunk.CharIdx)
+		assert.False(t, chunk.IsEmpty)
 	*/
 }
 
@@ -321,14 +321,14 @@ func TestChunkAtChar_Middle(t *testing.T) {
 func TestChunkAtChar_Unicode(t *testing.T) {
 	t.Skip("ChunkAtChar behavior needs clarification")
 	/*
-	r := New("Hello 世界")
+		r := New("Hello 世界")
 
-	// Find chunk at position 6 (first Unicode char "世")
-	chunk, startIdx := r.ChunkAtChar(6)
+		// Find chunk at position 6 (first Unicode char "世")
+		chunk, startIdx := r.ChunkAtChar(6)
 
-	assert.Equal(t, 6, chunk.CharIdx)
-	assert.True(t, chunk.CharLen >= 2) // At least "世界"
-	assert.True(t, startIdx <= 6)
+		assert.Equal(t, 6, chunk.CharIdx)
+		assert.True(t, chunk.CharLen >= 2) // At least "世界"
+		assert.True(t, startIdx <= 6)
 	*/
 }
 

@@ -4,12 +4,12 @@ package rope
 
 // BytesIterator iterates over the bytes of a rope.
 type BytesIterator struct {
-	rope         *Rope
-	bytePos      int     // Current byte position
-	totalBytes   int
-	currentLeaf  string  // Cached current leaf text
-	leafBytePos  int     // Byte position within current leaf
-	exhausted    bool
+	rope        *Rope
+	bytePos     int // Current byte position
+	totalBytes  int
+	currentLeaf string // Cached current leaf text
+	leafBytePos int    // Byte position within current leaf
+	exhausted   bool
 }
 
 // NewBytesIterator creates a new bytes iterator.

@@ -588,11 +588,11 @@ func TestStrUtils_PadCenter(t *testing.T) {
 // TestStrUtils_Truncate tests truncation
 func TestStrUtils_Truncate(t *testing.T) {
 	tests := []struct {
-		name      string
-		text      string
-		maxLen    int
-		ellipsis  bool
-		expected  string
+		name     string
+		text     string
+		maxLen   int
+		ellipsis bool
+		expected string
 	}{
 		{
 			name:     "Truncate without ellipsis",

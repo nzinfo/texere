@@ -72,8 +72,8 @@ func (r Range) Contains(pos int) bool {
 // Selection represents a collection of selection ranges.
 // It always contains at least one range.
 type Selection struct {
-	ranges        []Range
-	primaryIndex  int
+	ranges       []Range
+	primaryIndex int
 }
 
 // NewSelection creates a new Selection with a single Range.
@@ -314,4 +314,3 @@ func (s *Selection) FromPositions(positions []int) *Selection {
 		primaryIndex: primaryIdx,
 	}
 }
-

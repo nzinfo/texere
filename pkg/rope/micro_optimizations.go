@@ -330,12 +330,14 @@ func RuneCountInStringFast(s string) int {
 // ========== Branch Prediction Hints ==========
 
 // likely hints that a condition is likely true.
+//
 //go:nosplit
 func likely(b bool) bool {
 	return b
 }
 
 // unlikely hints that a condition is likely false.
+//
 //go:nosplit
 func unlikely(b bool) bool {
 	return b

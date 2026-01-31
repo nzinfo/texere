@@ -23,7 +23,7 @@ func GetMemStats() MemStats {
 	return MemStats{
 		Alloc:      m.Alloc,
 		TotalAlloc: m.TotalAlloc,
-		Mallocs:     m.Mallocs,
+		Mallocs:    m.Mallocs,
 		Frees:      m.Frees,
 	}
 }
@@ -33,7 +33,7 @@ func (m MemStats) Diff(other MemStats) MemStats {
 	return MemStats{
 		Alloc:      m.Alloc - other.Alloc,
 		TotalAlloc: m.TotalAlloc - other.TotalAlloc,
-		Mallocs:     m.Mallocs - other.Mallocs,
+		Mallocs:    m.Mallocs - other.Mallocs,
 		Frees:      m.Frees - other.Frees,
 	}
 }
@@ -96,11 +96,11 @@ func (r *Rope) AnalyzeMemory() MemoryReport {
 	}
 
 	report := MemoryReport{
-		TotalSize:    r.Size(),
-		TotalLength:  r.Length(),
-		ChunkCount:   r.ChunkCount(),
-		NodeCount:    r.NodeCount(),
-		Depth:        r.Depth(),
+		TotalSize:   r.Size(),
+		TotalLength: r.Length(),
+		ChunkCount:  r.ChunkCount(),
+		NodeCount:   r.NodeCount(),
+		Depth:       r.Depth(),
 	}
 
 	// Analyze chunks
@@ -133,14 +133,14 @@ type ChunkMemoryInfo struct {
 
 // MemoryReport reports detailed memory usage.
 type MemoryReport struct {
-	TotalSize     int                // Total content size in bytes
-	TotalLength   int                // Total characters
-	ChunkCount    int                // Number of chunks
-	NodeCount     int                // Number of tree nodes
-	Depth         int                // Tree depth
-	Chunks        []ChunkMemoryInfo  // Chunk details
-	OverheadBytes int                // Total overhead in bytes
-	Efficiency    float64            // Memory efficiency (0-1)
+	TotalSize     int               // Total content size in bytes
+	TotalLength   int               // Total characters
+	ChunkCount    int               // Number of chunks
+	NodeCount     int               // Number of tree nodes
+	Depth         int               // Tree depth
+	Chunks        []ChunkMemoryInfo // Chunk details
+	OverheadBytes int               // Total overhead in bytes
+	Efficiency    float64           // Memory efficiency (0-1)
 }
 
 // String returns a formatted memory report.
@@ -183,16 +183,16 @@ func estimateOverhead(s string) int {
 
 // PerformanceAnalysis holds comprehensive performance metrics.
 type PerformanceAnalysis struct {
-	MemoryReport MemoryReport
-	Benchmarks   map[string]BenchmarkResult
+	MemoryReport    MemoryReport
+	Benchmarks      map[string]BenchmarkResult
 	Recommendations []string
 }
 
 // AnalyzePerformance performs comprehensive performance analysis.
 func (r *Rope) AnalyzePerformance() PerformanceAnalysis {
 	analysis := PerformanceAnalysis{
-		MemoryReport: r.AnalyzeMemory(),
-		Benchmarks:   make(map[string]BenchmarkResult),
+		MemoryReport:    r.AnalyzeMemory(),
+		Benchmarks:      make(map[string]BenchmarkResult),
 		Recommendations: []string{},
 	}
 
@@ -314,7 +314,7 @@ func (r *Rope) DetectIssues() []Issue {
 
 	if smallChunks > it.Count()/2 {
 		issues = append(issues, Issue{
-			Type:    "Fragmentation",
+			Type:     "Fragmentation",
 			Severity: "High",
 			Message: fmt.Sprintf("Too many small chunks: %d/%d chunks are < 64 bytes",
 				smallChunks, it.Count()),
@@ -326,7 +326,7 @@ func (r *Rope) DetectIssues() []Issue {
 	expectedDepth := expectedDepth(r.Length())
 	if depth > expectedDepth*2 {
 		issues = append(issues, Issue{
-			Type:    "Balance",
+			Type:     "Balance",
 			Severity: "Medium",
 			Message: fmt.Sprintf("Tree is unbalanced: depth %d vs expected %d",
 				depth, expectedDepth),

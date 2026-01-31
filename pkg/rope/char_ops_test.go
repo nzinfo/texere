@@ -9,11 +9,11 @@ import (
 // TestCharOps_InsertChar tests single character insertion
 func TestCharOps_InsertChar(t *testing.T) {
 	tests := []struct {
-		name        string
-		text        string
-		pos         int
-		ch          rune
-		expected    string
+		name     string
+		text     string
+		pos      int
+		ch       rune
+		expected string
 	}{
 		{
 			name:     "Insert at beginning",
@@ -486,9 +486,9 @@ func TestCharOps_CollectChars(t *testing.T) {
 // TestCharOps_UniqueChars tests unique character collection
 func TestCharOps_UniqueChars(t *testing.T) {
 	tests := []struct {
-		name     string
-		text     string
-		minLen   int
+		name   string
+		text   string
+		minLen int
 	}{
 		{
 			name:   "Repeated characters",
@@ -797,18 +797,18 @@ func TestCharOps_CountingTests(t *testing.T) {
 	r := New("Hello World 123")
 
 	assert.Equal(t, 2, r.CountWhitespace()) // 2 spaces
-	assert.Equal(t, 3, r.CountDigits())      // 1, 2, 3
-	assert.Equal(t, 10, r.CountLetters())    // HelloWorld
+	assert.Equal(t, 3, r.CountDigits())     // 1, 2, 3
+	assert.Equal(t, 10, r.CountLetters())   // HelloWorld
 }
 
 // TestCharOps_TrimTests tests trimming methods
 func TestCharOps_TrimTests(t *testing.T) {
 	tests := []struct {
-		name          string
-		text          string
-		trimLeft      string
-		trimRight     string
-		trimBoth      string
+		name      string
+		text      string
+		trimLeft  string
+		trimRight string
+		trimBoth  string
 	}{
 		{
 			name:      "Whitespace trim",

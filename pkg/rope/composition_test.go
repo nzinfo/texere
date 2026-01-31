@@ -12,11 +12,11 @@ func TestCompose_Basic(t *testing.T) {
 	// Changeset A: insert " test!" after "hello", delete "xz", insert "abc"
 	// After A: "hello test! abc" (15 chars)
 	cs1 := NewChangeSet(doc.Length()).
-		Retain(5).               // "hello"
-		Insert(" test!").        // 6 chars
-		Retain(1).               // " "
-		Delete(2).               // "xz"
-		Insert("abc")            // 3 chars
+		Retain(5).        // "hello"
+		Insert(" test!"). // 6 chars
+		Retain(1).        // " "
+		Delete(2).        // "xz"
+		Insert("abc")     // 3 chars
 
 	// Verify cs1 transforms document correctly
 	result1 := cs1.Apply(doc)
@@ -31,9 +31,9 @@ func TestCompose_Basic(t *testing.T) {
 	// Insert("世orld") inserts replacement
 	// Retain(5) keeps "! abc"
 	cs2 := NewChangeSet(cs1.LenAfter()).
-		Delete(10).              // "hello te"
-		Insert("世orld").         // 5 chars
-		Retain(5)                // "! abc"
+		Delete(10).      // "hello te"
+		Insert("世orld"). // 5 chars
+		Retain(5)        // "! abc"
 
 	// Compose should produce equivalent result
 	composed := cs1.Compose(cs2)
@@ -48,7 +48,7 @@ func TestCompose_Basic(t *testing.T) {
 
 // NOTE: The following tests have incorrect expectations for composition.
 // Compose(cs1, cs2) creates a changeset that applies cs1 THEN cs2, where cs2's operations
-// are based on the document state AFTER cs1, not the original document.
+// are based on the document state AFTER cs1, not the original concordia.
 // These tests expect cs2 to work on the original document, which is wrong.
 // The correct way to combine changesets that work on the same document is via Transform, not Compose.
 

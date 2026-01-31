@@ -182,9 +182,9 @@ func TestSelection_MapPositions_Basic(t *testing.T) {
 
 	// Create selection with multiple cursors
 	ranges := []Range{
-		Point(0),   // Cursor at start
-		Point(5),   // Cursor at space
-		Point(11),  // Cursor at end
+		Point(0),  // Cursor at start
+		Point(5),  // Cursor at space
+		Point(11), // Cursor at end
 	}
 	sel := NewSelection(ranges...)
 
@@ -198,8 +198,8 @@ func TestSelection_MapPositions_Basic(t *testing.T) {
 
 	// Positions should be mapped
 	mappedRanges := mappedSel.Iter()
-	assert.Equal(t, 0, mappedRanges[0].From()) // Position 0 unchanged
-	assert.Greater(t, mappedRanges[1].From(), 5) // Position 5 shifted
+	assert.Equal(t, 0, mappedRanges[0].From())    // Position 0 unchanged
+	assert.Greater(t, mappedRanges[1].From(), 5)  // Position 5 shifted
 	assert.Greater(t, mappedRanges[2].From(), 11) // Position 11 shifted
 }
 

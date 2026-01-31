@@ -28,7 +28,7 @@ func TestNew_FromString(t *testing.T) {
 func TestNew_UTF8(t *testing.T) {
 	r := New("Hello 世界")
 	assert.Equal(t, 8, r.Length()) // 5 + 1 + 2 Chinese chars
-	assert.Equal(t, 12, r.Size())   // 5 + 1 + 6 bytes for Chinese
+	assert.Equal(t, 12, r.Size())  // 5 + 1 + 6 bytes for Chinese
 	assert.Equal(t, "Hello 世界", r.String())
 }
 
@@ -471,14 +471,14 @@ func TestLineStart(t *testing.T) {
 	r := New("Line1\nLine2\nLine3")
 
 	assert.Equal(t, 0, r.LineStart(0))
-	assert.Equal(t, 6, r.LineStart(1)) // After "Line1\n"
+	assert.Equal(t, 6, r.LineStart(1))  // After "Line1\n"
 	assert.Equal(t, 12, r.LineStart(2)) // After "Line2\n"
 }
 
 func TestLineEnd(t *testing.T) {
 	r := New("Line1\nLine2\nLine3")
 
-	assert.Equal(t, 5, r.LineEnd(0)) // "Line1"
+	assert.Equal(t, 5, r.LineEnd(0))  // "Line1"
 	assert.Equal(t, 11, r.LineEnd(1)) // "Line2"
 	assert.Equal(t, 17, r.LineEnd(2)) // "Line3"
 }
@@ -926,4 +926,3 @@ func BenchmarkRope_Iterator(b *testing.B) {
 		}
 	}
 }
-

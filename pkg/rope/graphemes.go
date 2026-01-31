@@ -18,18 +18,18 @@ import (
 // - A single Unicode code point (e.g., 'é' as U+00E9)
 // - Multiple code points (e.g., 'e' + combining acute, emoji families, etc.)
 type Grapheme struct {
-	Text      string  // The grapheme cluster text
-	StartPos  int     // Character position in rope (where this grapheme starts)
-	byteLen   int     // Length in bytes (private)
-	CharLen   int     // Length in characters (code points)
+	Text     string // The grapheme cluster text
+	StartPos int    // Character position in rope (where this grapheme starts)
+	byteLen  int    // Length in bytes (private)
+	CharLen  int    // Length in characters (code points)
 }
 
 // GraphemeIterator iterates over grapheme clusters in a rope.
 type GraphemeIterator struct {
-	rope       *Rope
-	graphemes  []Grapheme
-	index      int
-	exhausted  bool
+	rope      *Rope
+	graphemes []Grapheme
+	index     int
+	exhausted bool
 }
 
 // Graphemes returns an iterator over grapheme clusters in the rope.

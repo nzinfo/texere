@@ -207,13 +207,13 @@ func rebalanceTree(node RopeNode, config *BalanceConfig) RopeNode {
 
 // TreeStats contains statistics about a rope's tree structure.
 type TreeStats struct {
-	NodeCount     int // Total number of nodes
-	LeafCount     int // Number of leaf nodes
-	InternalCount int // Number of internal nodes
-	Depth         int // Maximum depth
+	NodeCount     int     // Total number of nodes
+	LeafCount     int     // Number of leaf nodes
+	InternalCount int     // Number of internal nodes
+	Depth         int     // Maximum depth
 	AvgDepth      float64 // Average depth of leaves
-	MinLeafSize   int // Smallest leaf size
-	MaxLeafSize   int // Largest leaf size
+	MinLeafSize   int     // Smallest leaf size
+	MaxLeafSize   int     // Largest leaf size
 	AvgLeafSize   float64 // Average leaf size
 }
 

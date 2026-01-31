@@ -1,4 +1,4 @@
-module github.com/texere-ot
+module github.com/coreseekdev/texere
 
 go 1.21
 

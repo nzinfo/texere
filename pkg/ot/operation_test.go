@@ -1,4 +1,4 @@
-package concordia
+package ot
 
 import (
 	"testing"
@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/texere-ot/pkg/document"
+	"github.com/coreseekdev/texere/pkg/concordia"
 )
 
 // TestOperation_Constructor tests the operation constructor.
@@ -304,7 +304,7 @@ func TestOperation_Transform_Random(t *testing.T) {
 // TestDocument_StringDocument tests StringDocument implementation.
 func TestDocument_StringDocument(t *testing.T) {
 	content := "Hello World"
-	doc := document.NewStringDocument(content)
+	doc := concordia.NewStringDocument(content)
 
 	assert.Equal(t, len(content), doc.Length())
 	assert.Equal(t, content, doc.String())

@@ -9,27 +9,27 @@ import (
 // TestByteCharConversion_BasicConversion tests basic byte to char conversion
 func TestByteCharConversion_BasicConversion(t *testing.T) {
 	tests := []struct {
-		name        string
-		text        string
-		byteIdx     int
+		name         string
+		text         string
+		byteIdx      int
 		expectedChar int
 	}{
 		{
-			name:        "ASCII text",
-			text:        "Hello",
-			byteIdx:     2,
+			name:         "ASCII text",
+			text:         "Hello",
+			byteIdx:      2,
 			expectedChar: 2,
 		},
 		{
-			name:        "Unicode text",
-			text:        "Hello世界",
-			byteIdx:     7, // After "Hello" (5 bytes) + first byte of "世"
+			name:         "Unicode text",
+			text:         "Hello世界",
+			byteIdx:      7, // After "Hello" (5 bytes) + first byte of "世"
 			expectedChar: 5,
 		},
 		{
-			name:        "Mixed ASCII and emoji",
-			text:        "Hi🌍World",
-			byteIdx:     3, // After "Hi" + first byte of emoji
+			name:         "Mixed ASCII and emoji",
+			text:         "Hi🌍World",
+			byteIdx:      3, // After "Hi" + first byte of emoji
 			expectedChar: 2,
 		},
 	}
@@ -46,27 +46,27 @@ func TestByteCharConversion_BasicConversion(t *testing.T) {
 // TestByteCharConversion_CharToByte tests character to byte conversion
 func TestByteCharConversion_CharToByte(t *testing.T) {
 	tests := []struct {
-		name        string
-		text        string
-		charIdx     int
+		name         string
+		text         string
+		charIdx      int
 		expectedByte int
 	}{
 		{
-			name:        "ASCII text",
-			text:        "Hello",
-			charIdx:     2,
+			name:         "ASCII text",
+			text:         "Hello",
+			charIdx:      2,
 			expectedByte: 2,
 		},
 		{
-			name:        "Unicode text",
-			text:        "Hello世界",
-			charIdx:     6, // "Hello" + "世"
+			name:         "Unicode text",
+			text:         "Hello世界",
+			charIdx:      6, // "Hello" + "世"
 			expectedByte: 8, // 5 + 3 bytes for "世"
 		},
 		{
-			name:        "Emoji",
-			text:        "Hi🌍",
-			charIdx:     2,
+			name:         "Emoji",
+			text:         "Hi🌍",
+			charIdx:      2,
 			expectedByte: 2,
 		},
 	}
@@ -122,39 +122,39 @@ func TestByteCharConversion_RoundTrip(t *testing.T) {
 // TestByteCharConversion_BoundaryConditions tests edge cases
 func TestByteCharConversion_BoundaryConditions(t *testing.T) {
 	tests := []struct {
-		name        string
-		text        string
-		byteIdx     int
+		name         string
+		text         string
+		byteIdx      int
 		expectedChar int
 	}{
 		{
-			name:        "Empty rope",
-			text:        "",
-			byteIdx:     0,
+			name:         "Empty rope",
+			text:         "",
+			byteIdx:      0,
 			expectedChar: 0,
 		},
 		{
-			name:        "Single character ASCII",
-			text:        "A",
-			byteIdx:     0,
+			name:         "Single character ASCII",
+			text:         "A",
+			byteIdx:      0,
 			expectedChar: 0,
 		},
 		{
-			name:        "Single character Unicode",
-			text:        "世",
-			byteIdx:     0,
+			name:         "Single character Unicode",
+			text:         "世",
+			byteIdx:      0,
 			expectedChar: 0,
 		},
 		{
-			name:        "Beyond end",
-			text:        "Hello",
-			byteIdx:     100,
+			name:         "Beyond end",
+			text:         "Hello",
+			byteIdx:      100,
 			expectedChar: 5,
 		},
 		{
-			name:        "Negative index",
-			text:        "Hello",
-			byteIdx:     -1,
+			name:         "Negative index",
+			text:         "Hello",
+			byteIdx:      -1,
 			expectedChar: 0,
 		},
 	}
@@ -171,33 +171,33 @@ func TestByteCharConversion_BoundaryConditions(t *testing.T) {
 // TestByteCharConversion_CharToByteBoundary tests CharToByte edge cases
 func TestByteCharConversion_CharToByteBoundary(t *testing.T) {
 	tests := []struct {
-		name        string
-		text        string
-		charIdx     int
+		name         string
+		text         string
+		charIdx      int
 		expectedByte int
 	}{
 		{
-			name:        "Empty rope",
-			text:        "",
-			charIdx:     0,
+			name:         "Empty rope",
+			text:         "",
+			charIdx:      0,
 			expectedByte: 0,
 		},
 		{
-			name:        "Single character",
-			text:        "A",
-			charIdx:     0,
+			name:         "Single character",
+			text:         "A",
+			charIdx:      0,
 			expectedByte: 0,
 		},
 		{
-			name:        "Beyond end",
-			text:        "Hello",
-			charIdx:     100,
+			name:         "Beyond end",
+			text:         "Hello",
+			charIdx:      100,
 			expectedByte: 5,
 		},
 		{
-			name:        "Negative index",
-			text:        "Hello",
-			charIdx:     -1,
+			name:         "Negative index",
+			text:         "Hello",
+			charIdx:      -1,
 			expectedByte: 0,
 		},
 	}
@@ -339,13 +339,13 @@ func TestByteCharConversion_CRLF(t *testing.T) {
 
 	// Test conversion at CRLF boundaries
 	tests := []struct {
-		charIdx     int
+		charIdx      int
 		expectedByte int
 	}{
-		{5, 5},  // Before first \r
-		{6, 6},  // At \r
-		{7, 7},  // At \n
-		{8, 8},  // After CRLF
+		{5, 5}, // Before first \r
+		{6, 6}, // At \r
+		{7, 7}, // At \n
+		{8, 8}, // After CRLF
 	}
 
 	for _, tt := range tests {

@@ -1,8 +1,8 @@
 package rope
 
 import (
-	"strconv"
 	"sort"
+	"strconv"
 	"sync"
 	"time"
 )
@@ -30,10 +30,10 @@ type SavePointMetadata struct {
 
 // EnhancedSavePoint extends SavePoint with metadata and duplicate detection.
 type EnhancedSavePoint struct {
-	*SavePoint                    // Embed original SavePoint
-	metadata    SavePointMetadata // Additional metadata
-	hash        string            // Content hash for duplicate detection
-	mu          sync.Mutex        // Protects metadata
+	*SavePoint                   // Embed original SavePoint
+	metadata   SavePointMetadata // Additional metadata
+	hash       string            // Content hash for duplicate detection
+	mu         sync.Mutex        // Protects metadata
 }
 
 // NewEnhancedSavePoint creates a new enhanced savepoint with metadata.
@@ -448,7 +448,8 @@ var resultsPool = sync.Pool{
 // Especially beneficial for high-concurrency scenarios with many queries.
 //
 // Example:
-//   results := manager.QueryOptimized(SavePointQuery{UserID: &userID, Limit: 10})
+//
+//	results := manager.QueryOptimized(SavePointQuery{UserID: &userID, Limit: 10})
 func (esm *EnhancedSavePointManager) QueryOptimized(query SavePointQuery) []SavePointResult {
 	esm.mu.RLock()
 	defer esm.mu.RUnlock()
@@ -518,11 +519,12 @@ func (esm *EnhancedSavePointManager) QueryOptimized(query SavePointQuery) []Save
 // Performance: Zero allocations when slice is reused.
 //
 // Example:
-//   results := make([]SavePointResult, 0, 16)
-//   for i := 0; i < 1000; i++ {
-//       results = manager.QueryPreallocated(query, results)
-//       // Process results...
-//   }
+//
+//	results := make([]SavePointResult, 0, 16)
+//	for i := 0; i < 1000; i++ {
+//	    results = manager.QueryPreallocated(query, results)
+//	    // Process results...
+//	}
 func (esm *EnhancedSavePointManager) QueryPreallocated(query SavePointQuery, results []SavePointResult) []SavePointResult {
 	esm.mu.RLock()
 	defer esm.mu.RUnlock()

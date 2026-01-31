@@ -1,4 +1,4 @@
-package concordia
+package ot
 
 import (
 	"testing"
@@ -153,7 +153,7 @@ func TestBuilder_Mixed(t *testing.T) {
 	assert.Equal(t, InsertOp("xyz"), op.ops[4])
 
 	assert.Equal(t, 10, op.BaseLength())
-	assert.Equal(t, 14, op.TargetLength())  // Fixed: was 16, ot.js returns 14
+	assert.Equal(t, 14, op.TargetLength()) // Fixed: was 16, ot.js returns 14
 }
 
 // TestBuilder_NoopRemoval tests that no-ops are removed.

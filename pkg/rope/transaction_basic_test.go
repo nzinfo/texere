@@ -7,10 +7,10 @@ import (
 // TestChangeSetInvert tests the Invert method.
 func TestChangeSetInvert(t *testing.T) {
 	tests := []struct {
-		name     string
-		initial  string
-		buildCS  func(*Rope) *ChangeSet
-		verify   func(*testing.T, *Rope, *ChangeSet, *ChangeSet)
+		name    string
+		initial string
+		buildCS func(*Rope) *ChangeSet
+		verify  func(*testing.T, *Rope, *ChangeSet, *ChangeSet)
 	}{
 		{
 			name:    "invert insert",
@@ -739,7 +739,7 @@ func TestComplexInvertScenario(t *testing.T) {
 		// Make a complex edit
 		cs := NewChangeSet(original.Length())
 		cs.Retain(4) // "The "
-		cs.Delete(6)  // Delete "quick "
+		cs.Delete(6) // Delete "quick "
 		cs.Insert("fast")
 		cs.Retain(11) // "brown fox "
 		cs.Delete(5)  // Delete "jumps"

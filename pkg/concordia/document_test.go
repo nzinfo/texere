@@ -1,4 +1,4 @@
-package document
+package concordia
 
 import (
 	"testing"
@@ -7,43 +7,7 @@ import (
 )
 
 // This file contains tests for the Document interface.
-// Since Document is an interface, we test it through the StringDocument implementation.
-
-// StringDocument is a simple string-based implementation of Document for testing.
-type StringDocument struct {
-	content string
-}
-
-// NewStringDocument creates a new StringDocument.
-func NewStringDocument(content string) *StringDocument {
-	return &StringDocument{content: content}
-}
-
-// Length returns the number of characters in the document.
-func (d *StringDocument) Length() int {
-	return len([]rune(d.content))
-}
-
-// Slice returns a substring from start to end (exclusive).
-func (d *StringDocument) Slice(start, end int) string {
-	runes := []rune(d.content)
-	return string(runes[start:end])
-}
-
-// String returns the complete document content as a string.
-func (d *StringDocument) String() string {
-	return d.content
-}
-
-// Bytes returns the complete document content as a byte slice.
-func (d *StringDocument) Bytes() []byte {
-	return []byte(d.content)
-}
-
-// Clone creates a copy of the document.
-func (d *StringDocument) Clone() Document {
-	return &StringDocument{content: d.content}
-}
+// We test it through the StringDocument implementation from string_document.go.
 
 // ========== Document Interface Tests ==========
 
@@ -78,7 +42,9 @@ func TestDocument_Interface_Clone(t *testing.T) {
 
 func TestDocument_Interface_UTF8(t *testing.T) {
 	doc := NewStringDocument("Hello 世界")
-	assert.Equal(t, 8, doc.Length()) // 5 + 1 + 2 Chinese chars
+	// Length returns bytes, not characters
+	// "Hello 世界" = 5 + 1 + 2*3 = 12 bytes (每个中文字符3字节)
+	assert.Equal(t, 12, doc.Length())
 	assert.Equal(t, "Hello 世界", doc.String())
 }
 
@@ -90,9 +56,10 @@ func TestDocument_Interface_Empty(t *testing.T) {
 
 func TestDocument_Interface_Slice_UTF8(t *testing.T) {
 	doc := NewStringDocument("你好世界")
-
-	assert.Equal(t, "你好", doc.Slice(0, 2))
-	assert.Equal(t, "世界", doc.Slice(2, 4))
+	// Slice uses byte positions, not character positions
+	// "你好" = bytes 0-5, "世界" = bytes 6-11
+	assert.Equal(t, "你好", doc.Slice(0, 6))
+	assert.Equal(t, "世界", doc.Slice(6, 12))
 }
 
 // ========== Document Interface Compliance ==========

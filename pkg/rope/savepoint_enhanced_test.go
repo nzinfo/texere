@@ -123,7 +123,7 @@ func TestEnhancedSavePointManager_DuplicateDetection_Skip(t *testing.T) {
 	// Second savepoint with same content should be skipped
 	id2, isDup2 := sm.Create(r2, 2, metadata)
 	assert.True(t, isDup2)
-	assert.Equal(t, 0, id2) // Returns first ID
+	assert.Equal(t, 0, id2)        // Returns first ID
 	assert.Equal(t, 1, sm.Count()) // Still only 1 savepoint
 }
 
@@ -169,7 +169,7 @@ func TestEnhancedSavePointManager_DuplicateDetection_Replace(t *testing.T) {
 
 	// Second savepoint should replace the first
 	id2, _ := sm.Create(r2, 2, metadata)
-	assert.Equal(t, 1, id2) // New ID
+	assert.Equal(t, 1, id2)        // New ID
 	assert.Equal(t, 1, sm.Count()) // Still only 1 savepoint
 
 	// First savepoint should no longer exist
@@ -365,8 +365,8 @@ func TestEnhancedSavePointManager_Stats(t *testing.T) {
 
 	stats := sm.Stats()
 	assert.Equal(t, 2, stats.TotalSavepoints)
-	assert.Equal(t, 2, stats.TotalUsers) // user1, user2
-	assert.Equal(t, 2, stats.TotalTags)  // tag1, tag2
+	assert.Equal(t, 2, stats.TotalUsers)   // user1, user2
+	assert.Equal(t, 2, stats.TotalTags)    // tag1, tag2
 	assert.Equal(t, 1, stats.UniqueHashes) // Same content
 	assert.Greater(t, stats.AvgRefCount, 0.0)
 }

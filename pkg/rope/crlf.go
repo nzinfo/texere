@@ -21,7 +21,7 @@ func IsCRLF(data []byte, pos int) bool {
 //   - preferredPos: The preferred position to split at
 //   - text: The text to split
 //   - minSplit: If true, will return the closest position before preferredPos;
-//               if false, will return the closest position after preferredPos
+//     if false, will return the closest position after preferredPos
 //
 // Returns a safe split position.
 func FindGoodSplit(preferredPos int, text []byte, minSplit bool) int {
@@ -285,9 +285,9 @@ func (r *Rope) ValidateCRLFPairs() bool {
 
 // LineEndingStats contains statistics about line endings in text.
 type LineEndingStats struct {
-	CRLF int // \r\n count
-	LF   int // \n count (excluding CRLF)
-	CR   int // \r count (excluding CRLF)
+	CRLF  int // \r\n count
+	LF    int // \n count (excluding CRLF)
+	CR    int // \r count (excluding CRLF)
 	Total int // Total line count
 }
 

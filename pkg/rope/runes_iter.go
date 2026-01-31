@@ -11,13 +11,13 @@ import "unicode/utf8"
 // - Position(): returns charPos + 1 (the next rune to be returned)
 // - Current(): returns the rune most recently returned by Next()
 type Iterator struct {
-	rope        *Rope
-	chunksIter  *ChunksIterator
+	rope         *Rope
+	chunksIter   *ChunksIterator
 	currentChunk string
-	chunkPos    int // Position within current chunk (in bytes)
-	charPos     int // Position of last returned rune (-1 if none)
-	currentRune rune // Current rune (valid after Next() returns true)
-	exhausted   bool
+	chunkPos     int  // Position within current chunk (in bytes)
+	charPos      int  // Position of last returned rune (-1 if none)
+	currentRune  rune // Current rune (valid after Next() returns true)
+	exhausted    bool
 }
 
 // NewIterator creates a new iterator starting from the beginning of the rope.
@@ -27,11 +27,11 @@ func (r *Rope) NewIterator() *Iterator {
 	}
 
 	it := &Iterator{
-		rope:       r,
-		chunksIter: r.Chunks(),
-		charPos:    -1, // No rune returned yet
+		rope:        r,
+		chunksIter:  r.Chunks(),
+		charPos:     -1, // No rune returned yet
 		currentRune: 0,
-		exhausted:  false,
+		exhausted:   false,
 	}
 	return it
 }
@@ -51,11 +51,11 @@ func (r *Rope) IteratorAt(pos int) *Iterator {
 	}
 
 	it := &Iterator{
-		rope:       r,
-		chunksIter: r.Chunks(),
-		charPos:    pos - 1, // Will become pos after first Next()
+		rope:        r,
+		chunksIter:  r.Chunks(),
+		charPos:     pos - 1, // Will become pos after first Next()
 		currentRune: 0,
-		exhausted:  false,
+		exhausted:   false,
 	}
 
 	// Find and load the chunk containing the target position
@@ -67,7 +67,7 @@ func (r *Rope) IteratorAt(pos int) *Iterator {
 		chunk := it.chunksIter.Current()
 		chunkLen := utf8.RuneCountInString(chunk)
 
-		if currentCharIdx + chunkLen > targetCharIdx {
+		if currentCharIdx+chunkLen > targetCharIdx {
 			// This chunk contains the target position
 			it.currentChunk = chunk
 			// Calculate byte position within this chunk
@@ -178,11 +178,11 @@ func (it *Iterator) HasNext() bool {
 	if it.currentChunk != "" && it.chunkPos < len(it.currentChunk) {
 		// Check if there's another rune in current chunk
 		_, size := utf8.DecodeRuneInString(it.currentChunk[it.chunkPos:])
-		return it.chunkPos + size <= len(it.currentChunk)
+		return it.chunkPos+size <= len(it.currentChunk)
 	}
 
 	// Check if there are more chunks
-	return it.chunksIter.Position() + 1 < it.chunksIter.Count()
+	return it.chunksIter.Position()+1 < it.chunksIter.Count()
 }
 
 // Seek positions the iterator at the specified character position.

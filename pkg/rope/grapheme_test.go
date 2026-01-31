@@ -114,12 +114,12 @@ func TestGrapheme_NextBoundaries(t *testing.T) {
 func TestGrapheme_IsBoundary(t *testing.T) {
 	r := New("cafe\u0301")
 
-	assert.True(t, r.IsGraphemeBoundary(0)) // Start of 'c'
-	assert.True(t, r.IsGraphemeBoundary(1)) // Start of 'a'
-	assert.True(t, r.IsGraphemeBoundary(2)) // Start of 'f'
-	assert.True(t, r.IsGraphemeBoundary(3)) // Start of 'é'
+	assert.True(t, r.IsGraphemeBoundary(0))  // Start of 'c'
+	assert.True(t, r.IsGraphemeBoundary(1))  // Start of 'a'
+	assert.True(t, r.IsGraphemeBoundary(2))  // Start of 'f'
+	assert.True(t, r.IsGraphemeBoundary(3))  // Start of 'é'
 	assert.False(t, r.IsGraphemeBoundary(4)) // Inside 'é'
-	assert.True(t, r.IsGraphemeBoundary(5)) // End of 'é'
+	assert.True(t, r.IsGraphemeBoundary(5))  // End of 'é'
 }
 
 // ========== GraphemeAt Tests ==========

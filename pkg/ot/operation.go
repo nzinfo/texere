@@ -1,11 +1,11 @@
-package concordia
+package ot
 
 import (
 	"errors"
 	"fmt"
 	"strings"
 
-	"github.com/texere-ot/pkg/document"
+	"github.com/coreseekdev/texere/pkg/concordia"
 )
 
 var (
@@ -145,7 +145,7 @@ func (op *Operation) String() string {
 	return strings.Join(parts, ", ")
 }
 
-// Apply applies this operation to a string document.
+// Apply applies this operation to a string concordia.
 //
 // This is a convenience method that creates a StringDocument and applies
 // the operation to it. For more control, use ApplyToDocument instead.
@@ -163,7 +163,7 @@ func (op *Operation) String() string {
 //	newDoc, err := op.Apply("Hello World")
 //	// newDoc == "Hello Go "
 func (op *Operation) Apply(str string) (string, error) {
-	doc := document.NewStringDocument(str)
+	doc := concordia.NewStringDocument(str)
 	result, err := op.ApplyToDocument(doc)
 	if err != nil {
 		return "", err
@@ -189,7 +189,7 @@ func (op *Operation) Apply(str string) (string, error) {
 //	doc := NewStringDocument("Hello World")
 //	op := NewBuilder().Retain(6).Insert("Go ").Build()
 //	newDoc, err := op.ApplyToDocument(doc)
-func (op *Operation) ApplyToDocument(doc document.Document) (document.Document, error) {
+func (op *Operation) ApplyToDocument(doc concordia.Document) (concordia.Document, error) {
 	// Validate operation
 	if op.baseLength != doc.Length() {
 		return nil, ErrInvalidBaseLength
@@ -219,7 +219,7 @@ func (op *Operation) ApplyToDocument(doc document.Document) (document.Document, 
 		case DeleteOp:
 			// Delete characters (skip over them)
 			// DeleteOp stores negative value, so we add the negative
-			docIndex += -int(v)  // Same as v.Length()
+			docIndex += -int(v) // Same as v.Length()
 		}
 	}
 
@@ -227,13 +227,13 @@ func (op *Operation) ApplyToDocument(doc document.Document) (document.Document, 
 		return nil, fmt.Errorf("the operation didn't operate on the whole string")
 	}
 
-	return document.NewStringDocument(builder.String()), nil
+	return concordia.NewStringDocument(builder.String()), nil
 }
 
 // Invert creates the inverse of this operation.
 //
 // The inverse operation, when applied to the result of this operation,
-// returns the original document. This is used for implementing undo.
+// returns the original concordia. This is used for implementing undo.
 //
 // Parameters:
 //   - str: the document string before this operation was applied

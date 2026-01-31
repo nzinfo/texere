@@ -7,20 +7,20 @@ import (
 
 // Revision represents a single revision in the undo/redo history tree.
 type Revision struct {
-	parent      int              // Index of parent revision (for undo)
-	lastChild   int              // Index of last child revision (for redo)
-	transaction *Transaction     // Forward transaction (redo)
-	inversion   *Transaction     // Inverted transaction (undo)
-	timestamp   time.Time        // When this revision was created
+	parent      int          // Index of parent revision (for undo)
+	lastChild   int          // Index of last child revision (for redo)
+	transaction *Transaction // Forward transaction (redo)
+	inversion   *Transaction // Inverted transaction (undo)
+	timestamp   time.Time    // When this revision was created
 }
 
 // History manages a tree of document revisions for undo/redo.
 // Unlike a simple stack, this allows non-linear history (branching).
 type History struct {
-	mu         sync.RWMutex
-	revisions   []*Revision // All revisions in chronological order
-	current     int         // Index of current revision
-	maxSize     int         // Maximum history size (0 = unlimited)
+	mu        sync.RWMutex
+	revisions []*Revision // All revisions in chronological order
+	current   int         // Index of current revision
+	maxSize   int         // Maximum history size (0 = unlimited)
 }
 
 // NewHistory creates a new empty history.
@@ -644,9 +644,9 @@ func (h *History) EarlierByDuration(duration time.Duration) *History {
 
 	if h.current < 0 || len(h.revisions) == 0 {
 		return &History{
-			revisions:   h.revisions,
-			current:     h.current,
-			maxSize:     h.maxSize,
+			revisions: h.revisions,
+			current:   h.current,
+			maxSize:   h.maxSize,
 		}
 	}
 
@@ -663,9 +663,9 @@ func (h *History) EarlierByDuration(duration time.Duration) *History {
 		if revTime.Before(targetTimeTrunc) || revTime.Equal(targetTimeTrunc) {
 			// Found state at or before target time
 			return &History{
-				revisions:   h.revisions,
-				current:     i,
-				maxSize:     h.maxSize,
+				revisions: h.revisions,
+				current:   i,
+				maxSize:   h.maxSize,
 			}
 		}
 	}
@@ -687,9 +687,9 @@ func (h *History) LaterByDuration(duration time.Duration) *History {
 
 	if len(h.revisions) == 0 {
 		return &History{
-			revisions:   h.revisions,
-			current:     h.current,
-			maxSize:     h.maxSize,
+			revisions: h.revisions,
+			current:   h.current,
+			maxSize:   h.maxSize,
 		}
 	}
 

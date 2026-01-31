@@ -1,4 +1,4 @@
-package document
+package concordia
 
 // StringDocument is a simple string-based document implementation.
 //
@@ -71,7 +71,7 @@ func (d *StringDocument) Bytes() []byte {
 	return []byte(d.content)
 }
 
-// Clone creates a deep copy of the document.
+// Clone creates a deep copy of the concordia.
 //
 // For StringDocument, this creates a copy of the underlying string.
 // Since Go strings are immutable, this is effectively a shallow copy,

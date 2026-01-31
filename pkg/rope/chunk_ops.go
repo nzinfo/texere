@@ -8,13 +8,13 @@ import (
 
 // ChunkInfo contains information about a chunk.
 type ChunkInfo struct {
-	ByteIdx   int // Byte index of the chunk's start
-	CharIdx   int // Character index of the chunk's start
-	LineIdx   int // Line index of the chunk's start
-	ByteLen   int // Length in bytes
-	CharLen   int // Length in characters
-	Text      string // The chunk text
-	IsEmpty   bool // Whether the chunk is empty
+	ByteIdx int    // Byte index of the chunk's start
+	CharIdx int    // Character index of the chunk's start
+	LineIdx int    // Line index of the chunk's start
+	ByteLen int    // Length in bytes
+	CharLen int    // Length in characters
+	Text    string // The chunk text
+	IsEmpty bool   // Whether the chunk is empty
 }
 
 // ChunkAtChar returns the chunk containing the given character position.
@@ -37,13 +37,13 @@ func (r *Rope) ChunkAtChar(charIdx int) (ChunkInfo, int) {
 	startLineIdx := r.LineAtChar(startCharIdx)
 
 	return ChunkInfo{
-		ByteIdx:   chunkStart,
-		CharIdx:   startCharIdx,
-		LineIdx:   startLineIdx,
-		ByteLen:   len(chunkText),
-		CharLen:   runeCount(chunkText),
-		Text:      chunkText,
-		IsEmpty:   len(chunkText) == 0,
+		ByteIdx: chunkStart,
+		CharIdx: startCharIdx,
+		LineIdx: startLineIdx,
+		ByteLen: len(chunkText),
+		CharLen: runeCount(chunkText),
+		Text:    chunkText,
+		IsEmpty: len(chunkText) == 0,
 	}, startCharIdx
 }
 
@@ -68,13 +68,13 @@ func (r *Rope) ChunkAtByte(byteIdx int) (ChunkInfo, int) {
 	}
 
 	return ChunkInfo{
-		ByteIdx:   chunkStart,
-		CharIdx:   startCharIdx,
-		LineIdx:   startLineIdx,
-		ByteLen:   len(chunkText),
-		CharLen:   runeCount(chunkText),
-		Text:      chunkText,
-		IsEmpty:   len(chunkText) == 0,
+		ByteIdx: chunkStart,
+		CharIdx: startCharIdx,
+		LineIdx: startLineIdx,
+		ByteLen: len(chunkText),
+		CharLen: runeCount(chunkText),
+		Text:    chunkText,
+		IsEmpty: len(chunkText) == 0,
 	}, chunkStart
 }
 
@@ -133,13 +133,13 @@ func collectChunks(n RopeNode, infos *[]ChunkInfo, byteIdx, charIdx, lineIdx *in
 		// Empty rope should have 0 chunks, not 1 empty chunk
 		if textLen > 0 {
 			*infos = append(*infos, ChunkInfo{
-				ByteIdx:   *byteIdx,
-				CharIdx:   *charIdx,
-				LineIdx:   *lineIdx,
-				ByteLen:   textLen,
-				CharLen:   charCount,
-				Text:      node.text,
-				IsEmpty:   textLen == 0,
+				ByteIdx: *byteIdx,
+				CharIdx: *charIdx,
+				LineIdx: *lineIdx,
+				ByteLen: textLen,
+				CharLen: charCount,
+				Text:    node.text,
+				IsEmpty: textLen == 0,
 			})
 		}
 
