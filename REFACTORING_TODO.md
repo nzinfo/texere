@@ -162,21 +162,37 @@ The `pkg/rope` directory has 50+ files. Some files could be reorganized:
 3. Update all imports across the codebase
 4. Run full test suite to ensure nothing broke
 
-### Documentation Improvements
-**Reason:** Defer to separate documentation pass
+### 13. Documentation Improvements ✅
+**Status:** COMPLETED
 
-Many methods lack complete documentation:
-- Missing parameter descriptions
-- Missing return value descriptions
-- Missing usage examples
-- Inconsistent documentation style
+Enhanced documentation for Rope public APIs with examples and clarifications:
 
-**Future Work:**
-1. Add godoc comments to all public APIs
-2. Add usage examples for key operations
-3. Document performance characteristics (O(n) notation)
-4. Document thread-safety guarantees (Rope is immutable, safe for concurrent reads)
-5. Add package-level documentation explaining when to use Rope vs StringDocument
+**Functional Methods Enhanced (rope.go):**
+- `ForEach` - Added description and usage example
+- `ForEachWithIndex` - Clarified 0-based index
+- `Map` - Added example showing uppercase conversion
+- `Filter` - Added example showing vowel filtering
+- `Count` - Added example showing digit counting
+
+**Utility Methods Enhanced (rope.go):**
+- `Lines` - Clarified line ending preservation
+- `Contains` - Added note about grapheme search alternatives
+- `Index`/`LastIndex` - Clarified character vs byte position
+- `Compare`/`Equals` - Enhanced with examples
+
+**Word Boundary Detection Enhanced (text_word_boundary.go):**
+- `WordBoundary` type - Added comprehensive description
+- `IsWordChar` - Clarified \w pattern matching
+- `IsWhitespace` - Documented Unicode support
+- `PrevWordStart/NextWordStart/PrevWordEnd/NextWordEnd` - Added examples
+
+**Documentation Standards Applied:**
+- Clear descriptions of method behavior
+- Parameter descriptions where applicable
+- Return value descriptions
+- Usage examples for common use cases
+- Notes on edge case behavior
+- Thread-safety and immutability notes (already documented in package godoc)
 
 ### Iterator Unification ✅
 **Status:** COMPLETED
