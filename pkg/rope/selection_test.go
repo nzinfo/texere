@@ -1,6 +1,8 @@
 package rope
 
-import "testing"
+import (
+	"testing"
+)
 
 // TestRange_NewRange tests creating new ranges
 func TestRange_NewRange(t *testing.T) {
@@ -54,7 +56,7 @@ func TestRange_Contains(t *testing.T) {
 	}{
 		{0, false},
 		{5, true},
-		{7, true},
+			{7, true},
 		{9, true},
 		{10, false},
 		{15, false},
@@ -83,151 +85,39 @@ func TestSelection_NewSelection(t *testing.T) {
 	ranges := []Range{
 		NewRange(0, 5),
 		NewRange(10, 15),
-		Point(20),
+		NewRange(20, 25),
 	}
 	sel = NewSelection(ranges...)
+
 	if sel.Len() != 3 {
 		t.Errorf("Expected length 3, got %d", sel.Len())
 	}
 
-	// Test primary
-	primary := sel.Primary()
-	if primary.From() != 0 || primary.To() != 5 {
-		t.Errorf("Expected primary range 0-5, got %d-%d", primary.From(), primary.To())
+	// Primary should default to first
+	if sel.PrimaryIndex() != 0 {
+		t.Errorf("Expected primary index 0, got %d", sel.PrimaryIndex())
 	}
 }
 
-// TestSelection_NewSelectionWithPrimary tests creating selection with specific primary
+// TestSelection_NewSelectionWithPrimary tests creating a selection with specific primary index
 func TestSelection_NewSelectionWithPrimary(t *testing.T) {
 	ranges := []Range{
 		NewRange(0, 5),
 		NewRange(10, 15),
-		Point(20),
+		NewRange(20, 25),
 	}
 
-	// Primary at index 1
+	// Set second range as primary
 	sel := NewSelectionWithPrimary(ranges, 1)
+
 	if sel.PrimaryIndex() != 1 {
 		t.Errorf("Expected primary index 1, got %d", sel.PrimaryIndex())
 	}
+
+	// Primary() should return the second range
 	primary := sel.Primary()
 	if primary.From() != 10 || primary.To() != 15 {
-		t.Errorf("Expected primary range 10-15, got %d-%d", primary.From(), primary.To())
-	}
-
-	// Invalid primary index should default to 0
-	sel = NewSelectionWithPrimary(ranges, 5)
-	if sel.PrimaryIndex() != 0 {
-		t.Errorf("Expected primary index 0 (out of bounds), got %d", sel.PrimaryIndex())
-	}
-}
-
-// TestTransaction_WithSelection tests adding selection to transaction
-func TestTransaction_WithSelection(t *testing.T) {
-	doc := New("hello world")
-	cs := NewChangeSet(doc.Length()).Retain(5).Insert(" beautiful")
-	tx := NewTransaction(cs)
-
-	// Add selection
-	sel := NewSelection(NewRange(5, 10))
-	txWithSel := tx.WithSelection(sel)
-
-	if txWithSel.Selection() == nil {
-		t.Error("Expected selection to be set")
-	}
-	if txWithSel.Selection().Len() != 1 {
-		t.Errorf("Expected selection length 1, got %d", txWithSel.Selection().Len())
-	}
-}
-
-// TestTransaction_Change tests creating transaction from changes
-func TestTransaction_Change(t *testing.T) {
-	doc := New("hello world")
-
-	// Replace "world" with "gophers"
-	changes := []EditOperation{
-		{From: 6, To: 11, Text: "gophers"},
-	}
-
-	tx := Change(doc, changes)
-	result := tx.Apply(doc)
-
-	expected := "hello gophers"
-	if result.String() != expected {
-		t.Errorf("Expected %q, got %q", expected, result.String())
-	}
-}
-
-// TestTransaction_DeleteFromDeletions tests creating transaction from deletions
-func TestTransaction_DeleteFromDeletions(t *testing.T) {
-	doc := New("hello world")
-
-	// Delete "world "
-	deletions := []Deletion{
-		{From: 5, To: 11},
-	}
-
-	tx := Delete(doc, deletions)
-	result := tx.Apply(doc)
-
-	expected := "hello"
-	if result.String() != expected {
-		t.Errorf("Expected %q, got %q", expected, result.String())
-	}
-}
-
-// TestTransaction_InsertAtEOF tests inserting at end of document
-func TestTransaction_InsertAtEOF(t *testing.T) {
-	doc := New("hello")
-
-	tx := NewTransaction(NewChangeSet(doc.Length()))
-	tx = tx.InsertAtEOF(" world")
-
-	result := tx.Apply(doc)
-
-	expected := "hello world"
-	if result.String() != expected {
-		t.Errorf("Expected %q, got %q", expected, result.String())
-	}
-}
-
-// TestTransaction_Insert tests inserting at all cursor positions
-func TestTransaction_Insert(t *testing.T) {
-	doc := New("abc")
-
-	// Create selection with two cursors
-	sel := NewSelection(Point(1), Point(2))
-
-	tx := Insert(doc, sel, "X")
-	result := tx.Apply(doc)
-
-	expected := "aXbXc"
-	if result.String() != expected {
-		t.Errorf("Expected %q, got %q", expected, result.String())
-	}
-}
-
-// TestTransaction_Compose tests composing transactions with selections
-func TestTransaction_Compose(t *testing.T) {
-	doc := New("hello")
-
-	cs1 := NewChangeSet(doc.Length()).Retain(5).Insert(" world")
-	tx1 := NewTransaction(cs1)
-
-	sel := NewSelection(Point(10))
-	tx1 = tx1.WithSelection(sel)
-
-	// Compose with another transaction that deletes the inserted " world"
-	// Need to Retain(5) then Delete(6) to delete " world" (6 chars starting at position 5)
-	cs2 := NewChangeSet(tx1.Changeset().LenAfter()).Retain(5).Delete(6)
-	tx2 := NewTransaction(cs2)
-
-	composed := tx1.Compose(tx2)
-	result := composed.Apply(doc)
-
-	expected := "hello"
-	if result.String() != expected {
-		t.Errorf("Expected %q, got %q", expected, result.String())
+		t.Errorf("Expected primary 10-15, got %d-%d", primary.From(), primary.To())
 	}
 }
 

@@ -805,39 +805,39 @@ func main() {
     history := rope.NewHistory()
 
     // 第一次编辑：插入 " Beautiful"
-    cs := rope.NewChangeSet(doc.Length()).
-        Retain(5).
-        Insert(" Beautiful")
-    txn1 := rope.NewTransaction(cs)
+    builder := ot.NewBuilder()
+    builder.Retain(5)
+    builder.Insert(" Beautiful")
+    op1 := builder.Build()
 
     // 提交到历史并应用
-    history.CommitRevision(txn1, doc)
-    doc = txn1.Apply(doc)
+    history.CommitRevision(op1, doc)
+    doc, _ = doc.ApplyOperation(op1)
 
     fmt.Println(doc.String()) // "Hello Beautiful World"
 
     // 第二次编辑：删除 " Beautiful"
-    cs = rope.NewChangeSet(doc.Length()).
-        Retain(5).
-        Delete(10)
-    txn2 := rope.NewTransaction(cs)
+    builder = ot.NewBuilder()
+    builder.Retain(5)
+    builder.Delete(10)
+    op2 := builder.Build()
 
-    history.CommitRevision(txn2, doc)
-    doc = txn2.Apply(doc)
+    history.CommitRevision(op2, doc)
+    doc, _ = doc.ApplyOperation(op2)
 
     fmt.Println(doc.String()) // "Hello World"
 
     // 撤销第二次编辑
-    undoTxn := history.Undo()
-    if undoTxn != nil {
-        doc = undoTxn.Apply(doc)
+    undoOp := history.Undo()
+    if undoOp != nil {
+        doc, _ = doc.ApplyOperation(undoOp)
         fmt.Println("After undo:", doc.String()) // "Hello Beautiful World"
     }
 
     // 重做
-    redoTxn := history.Redo()
-    if redoTxn != nil {
-        doc = redoTxn.Apply(doc)
+    redoOp := history.Redo()
+    if redoOp != nil {
+        doc, _ = doc.ApplyOperation(redoOp)
         fmt.Println("After redo:", doc.String()) // "Hello World"
     }
 }
@@ -853,8 +853,13 @@ fmt.Println("CanUndo:", history.CanUndo()) // false
 fmt.Println("CanRedo:", history.CanRedo()) // false
 
 // 做一些编辑...
-history.CommitRevision(txn, doc)
-doc = txn.Apply(doc)
+builder := ot.NewBuilder()
+builder.Retain(doc.Length())
+builder.Insert("Hello")
+op := builder.Build()
+
+history.CommitRevision(op, doc)
+doc, _ = doc.ApplyOperation(op)
 
 fmt.Println("CanUndo:", history.CanUndo()) // true
 fmt.Println("CanRedo:", history.CanRedo()) // false
@@ -874,24 +879,24 @@ history := rope.NewHistory()
 doc := rope.New("Hello")
 
 // 编辑 1
-cs1 := rope.NewChangeSet(doc.Length()).
-    Retain(5).
-    Insert(" World")
-txn1 := rope.NewTransaction(cs1)
-history.CommitRevision(txn1, doc)
-doc = txn1.Apply(doc)
+builder1 := ot.NewBuilder()
+builder1.Retain(5)
+builder1.Insert(" World")
+op1 := builder1.Build()
+history.CommitRevision(op1, doc)
+doc, _ = doc.ApplyOperation(op1)
 
 // 撤销编辑 1
-undoTxn := history.Undo()
-doc = undoTxn.Apply(doc)
+undoOp := history.Undo()
+doc, _ = doc.ApplyOperation(undoOp)
 
 // 做不同的编辑（创建新分支）
-cs2 := rope.NewChangeSet(doc.Length()).
-    Retain(5).
-    Insert(" Gophers")
-txn2 := rope.NewTransaction(cs2)
-history.CommitRevision(txn2, doc)
-doc = txn2.Apply(doc)
+builder2 := ot.NewBuilder()
+builder2.Retain(5)
+builder2.Insert(" Gophers")
+op2 := builder2.Build()
+history.CommitRevision(op2, doc)
+doc, _ = doc.ApplyOperation(op2)
 
 fmt.Println(doc.String()) // "Hello Gophers"
 
@@ -923,22 +928,22 @@ doc := rope.New("Hello")
 
 // 做多个编辑...
 for i := 0; i < 5; i++ {
-    cs := rope.NewChangeSet(doc.Length()).
-        Retain(doc.Length()).
-        Insert(string(rune('a' + i)))
-    txn := rope.NewTransaction(cs)
-    history.CommitRevision(txn, doc)
-    doc = txn.Apply(doc)
+    builder := ot.NewBuilder()
+    builder.Retain(doc.Length())
+    builder.Insert(string(rune('a' + i)))
+    op := builder.Build()
+    history.CommitRevision(op, doc)
+    doc, _ = doc.ApplyOperation(op)
 }
 
 // 撤销 3 步（注意：目前只支持单步）
-earlierTxn := history.Undo()
-doc = earlierTxn.Apply(doc)
+earlierOp := history.Undo()
+doc, _ = doc.ApplyOperation(earlierOp)
 // 继续撤销...
-earlierTxn = history.Undo()
-doc = earlierTxn.Apply(doc)
-earlierTxn = history.Undo()
-doc = earlierTxn.Apply(doc)
+earlierOp = history.Undo()
+doc, _ = doc.ApplyOperation(earlierOp)
+earlierOp = history.Undo()
+doc, _ = doc.ApplyOperation(earlierOp)
 
 fmt.Println(doc.String()) // 回到 3 步之前的状态
 ```
@@ -963,8 +968,8 @@ history.Clear()
 
 Rope 的 undo/redo 基于 Helix 编辑器的设计：
 
-1. **Transaction（事务）**: 代表一个原子编辑操作
-2. **ChangeSet（变更集）**: 可组合、可逆的操作序列
+1. **ot.Operation（操作）**: 代表一个原子编辑操作
+2. **ChangeSet（变更集）**: 可组合、可逆的操作序列（rope 内部表示）
 3. **Inversion（反转）**: 预计算的撤销操作
 4. **Tree History（树形历史）**: 支持非线性撤销分支
 

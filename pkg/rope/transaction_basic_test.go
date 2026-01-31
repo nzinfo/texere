@@ -123,49 +123,6 @@ func TestChangeSetInvert(t *testing.T) {
 	}
 }
 
-// TestTransactionInvert tests the Transaction Invert method.
-func TestTransactionInvert(t *testing.T) {
-	t.Run("invert transaction", func(t *testing.T) {
-		original := New("Hello World")
-		cs := NewChangeSet(original.Length())
-		cs.Retain(5)
-		cs.Delete(1)
-		cs.Insert(" Beautiful")
-		transaction := NewTransaction(cs)
-
-		// Apply transaction
-		modified := transaction.Apply(original)
-		if modified.String() != "Hello BeautifulWorld" {
-			t.Errorf("Apply failed: got %q", modified.String())
-		}
-
-		// Invert and apply
-		invertedTx := transaction.Invert(original)
-		reverted := invertedTx.Apply(modified)
-		if reverted.String() != original.String() {
-			t.Errorf("Transaction invert failed: got %q, want %q", reverted.String(), original.String())
-		}
-	})
-
-	t.Run("invert nil transaction", func(t *testing.T) {
-		var tx *Transaction
-		inverted := tx.Invert(nil)
-		if inverted == nil {
-			t.Error("Inverting nil transaction should return empty transaction")
-		}
-	})
-
-	t.Run("invert empty transaction", func(t *testing.T) {
-		cs := NewChangeSet(10)
-		tx := NewTransaction(cs)
-		inverted := tx.Invert(nil)
-
-		if inverted == nil {
-			t.Error("Invert should return transaction")
-		}
-	})
-}
-
 // TestChangeSetCompose tests the Compose method.
 func TestChangeSetCompose(t *testing.T) {
 	tests := []struct {
@@ -275,64 +232,6 @@ func TestChangeSetCompose(t *testing.T) {
 			tt.verify(t, original, cs1, cs2, composed)
 		})
 	}
-}
-
-// TestTransactionCompose tests the Transaction Compose method.
-func TestTransactionCompose(t *testing.T) {
-	t.Run("compose transactions", func(t *testing.T) {
-		_ = New("Hello")
-
-		// First transaction
-		cs1 := NewChangeSet(5)
-		cs1.Retain(5)
-		tx1 := NewTransaction(cs1)
-
-		// Second transaction
-		cs2 := NewChangeSet(5)
-		cs2.Retain(5)
-		tx2 := NewTransaction(cs2)
-
-		// Compose should work
-		composed := tx1.Compose(tx2)
-		if composed == nil {
-			t.Error("Compose returned nil")
-		}
-	})
-
-	t.Run("compose with nil", func(t *testing.T) {
-		cs := NewChangeSet(5)
-		tx := NewTransaction(cs)
-
-		// Compose with nil
-		composed1 := tx.Compose(nil)
-		if composed1 != tx {
-			t.Error("Composing with nil should return original transaction")
-		}
-
-		// Compose nil with transaction
-		composed2 := (*Transaction)(nil).Compose(tx)
-		if composed2 != tx {
-			t.Error("Composing nil with transaction should return the transaction")
-		}
-	})
-
-	t.Run("compose preserves selection", func(t *testing.T) {
-		sel := NewSelection()
-		sel.Add(Range{Head: 5, Anchor: 10})
-
-		cs1 := NewChangeSet(10)
-		cs1.Retain(10)
-		tx1 := NewTransaction(cs1).WithSelection(sel)
-
-		cs2 := NewChangeSet(10)
-		cs2.Retain(10)
-		tx2 := NewTransaction(cs2)
-
-		composed := tx1.Compose(tx2)
-		if composed.Selection() == nil {
-			t.Error("Composed transaction should have selection")
-		}
-	})
 }
 
 // TestChangeSetMapPosition tests the MapPosition method.
@@ -542,55 +441,6 @@ func TestPositionMapperBasic(t *testing.T) {
 	})
 }
 
-// TestTransactionEdgeCases tests edge cases for transaction operations.
-func TestTransactionEdgeCases(t *testing.T) {
-	t.Run("apply nil transaction", func(t *testing.T) {
-		rope := New("Hello")
-		var tx *Transaction
-		result := tx.Apply(rope)
-		if result.String() != "Hello" {
-			t.Error("Applying nil transaction should return original rope")
-		}
-	})
-
-	t.Run("invert with nil original", func(t *testing.T) {
-		cs := NewChangeSet(10)
-		cs.Retain(5)
-		cs.Insert("Hello")
-		tx := NewTransaction(cs)
-
-		inverted := tx.Invert(nil)
-		if inverted == nil {
-			t.Error("Invert with nil should return transaction")
-		}
-	})
-
-	t.Run("compose empty changesets", func(t *testing.T) {
-		cs1 := NewChangeSet(10)
-		cs2 := NewChangeSet(10)
-		composed := cs1.Compose(cs2)
-
-		if composed == nil {
-			t.Error("Composing empty changesets should return changeset")
-		}
-	})
-
-	t.Run("transaction is empty", func(t *testing.T) {
-		cs := NewChangeSet(10)
-		tx := NewTransaction(cs)
-
-		if !tx.IsEmpty() {
-			t.Error("Transaction with empty changeset should be empty")
-		}
-
-		cs.Retain(10)
-		tx2 := NewTransaction(cs)
-		if tx2.IsEmpty() {
-			t.Error("Transaction with operations should not be empty")
-		}
-	})
-}
-
 // TestChangeSetLengths tests LenBefore and LenAfter methods.
 func TestChangeSetLengths(t *testing.T) {
 	t.Run("lengths for insert", func(t *testing.T) {
@@ -630,42 +480,6 @@ func TestChangeSetLengths(t *testing.T) {
 		}
 		if cs.LenAfter() != 11 { // 5 retained + 6 inserted = 11
 			t.Errorf("LenAfter: got %d, want 11", cs.LenAfter())
-		}
-	})
-}
-
-// TestTransactionTimestamp tests the Timestamp method.
-func TestTransactionTimestamp(t *testing.T) {
-	cs := NewChangeSet(10)
-	tx := NewTransaction(cs)
-
-	if tx.Timestamp().IsZero() {
-		t.Error("Transaction should have timestamp")
-	}
-}
-
-// TestTransactionWithSelection tests WithSelection method.
-func TestTransactionWithSelection(t *testing.T) {
-	t.Run("with selection", func(t *testing.T) {
-		cs := NewChangeSet(10)
-		tx := NewTransaction(cs)
-
-		sel := NewSelection()
-		sel.Add(Range{Head: 0, Anchor: 5})
-
-		txWithSel := tx.WithSelection(sel)
-		if txWithSel.Selection() == nil {
-			t.Error("WithSelection should set selection")
-		}
-	})
-
-	t.Run("with selection on nil transaction", func(t *testing.T) {
-		var tx *Transaction
-		sel := NewSelection()
-
-		result := tx.WithSelection(sel)
-		if result != nil {
-			t.Error("WithSelection on nil should return nil")
 		}
 	})
 }

@@ -1,7 +1,8 @@
-package rope
+package concordia
 
 import (
 	"github.com/coreseekdev/texere/pkg/ot"
+	"github.com/coreseekdev/texere/pkg/rope"
 )
 
 // RopeDocument adapts a Rope to implement the ot.Document interface.
@@ -11,18 +12,18 @@ import (
 //
 // Since Rope is immutable, Clone() returns the same instance without copying.
 type RopeDocument struct {
-	rope *Rope
+	rope *rope.Rope
 }
 
 // NewRopeDocument creates a new RopeDocument from the given text.
 func NewRopeDocument(text string) *RopeDocument {
 	return &RopeDocument{
-		rope: New(text),
+		rope: rope.New(text),
 	}
 }
 
 // NewRopeDocumentFromRope creates a RopeDocument from an existing Rope.
-func NewRopeDocumentFromRope(r *Rope) *RopeDocument {
+func NewRopeDocumentFromRope(r *rope.Rope) *RopeDocument {
 	return &RopeDocument{
 		rope: r,
 	}
@@ -66,14 +67,14 @@ func (d *RopeDocument) Bytes() []byte {
 // The returned value can be safely used as an independent Document.
 func (d *RopeDocument) Clone() ot.Document {
 	if d == nil {
-		return &RopeDocument{rope: Empty()}
+		return &RopeDocument{rope: rope.Empty()}
 	}
 	return &RopeDocument{rope: d.rope.Clone()}
 }
 
 // Rope returns the underlying Rope for direct access.
 // This allows using Rope-specific operations when needed.
-func (d *RopeDocument) Rope() *Rope {
+func (d *RopeDocument) Rope() *rope.Rope {
 	if d == nil {
 		return nil
 	}
@@ -86,7 +87,7 @@ func (d *RopeDocument) Rope() *Rope {
 // This is a convenience method that wraps Rope.Insert().
 func (d *RopeDocument) Insert(pos int, text string) *RopeDocument {
 	if d == nil {
-		return &RopeDocument{rope: New(text)}
+		return &RopeDocument{rope: rope.New(text)}
 	}
 	return &RopeDocument{
 		rope: d.rope.Insert(pos, text),
@@ -97,7 +98,7 @@ func (d *RopeDocument) Insert(pos int, text string) *RopeDocument {
 // This is a convenience method that wraps Rope.Delete().
 func (d *RopeDocument) Delete(start, end int) *RopeDocument {
 	if d == nil {
-		return &RopeDocument{rope: Empty()}
+		return &RopeDocument{rope: rope.Empty()}
 	}
 	return &RopeDocument{
 		rope: d.rope.Delete(start, end),
@@ -108,7 +109,7 @@ func (d *RopeDocument) Delete(start, end int) *RopeDocument {
 // This is a convenience method that wraps Rope.Replace().
 func (d *RopeDocument) Replace(start, end int, text string) *RopeDocument {
 	if d == nil {
-		return &RopeDocument{rope: New(text)}
+		return &RopeDocument{rope: rope.New(text)}
 	}
 	return &RopeDocument{
 		rope: d.rope.Replace(start, end, text),
@@ -119,9 +120,9 @@ func (d *RopeDocument) Replace(start, end int, text string) *RopeDocument {
 func (d *RopeDocument) Concat(other ot.Document) *RopeDocument {
 	if d == nil {
 		if other == nil {
-			return &RopeDocument{rope: Empty()}
+			return &RopeDocument{rope: rope.Empty()}
 		}
-		return &RopeDocument{rope: New(other.String())}
+		return &RopeDocument{rope: rope.New(other.String())}
 	}
 
 	if other == nil {
@@ -137,14 +138,14 @@ func (d *RopeDocument) Concat(other ot.Document) *RopeDocument {
 
 	// Fall back to string-based concatenation
 	return &RopeDocument{
-		rope: d.rope.Concat(New(other.String())),
+		rope: d.rope.Concat(rope.New(other.String())),
 	}
 }
 
 // Split splits the document at the given position.
 func (d *RopeDocument) Split(pos int) (*RopeDocument, *RopeDocument) {
 	if d == nil {
-		return &RopeDocument{rope: Empty()}, &RopeDocument{rope: Empty()}
+		return &RopeDocument{rope: rope.Empty()}, &RopeDocument{rope: rope.Empty()}
 	}
 
 	left, right := d.rope.Split(pos)
@@ -158,7 +159,7 @@ func (d *RopeDocument) Split(pos int) (*RopeDocument, *RopeDocument) {
 // Otherwise, it creates a new RopeDocument from the document's content.
 func AsRopeDocument(doc ot.Document) *RopeDocument {
 	if doc == nil {
-		return &RopeDocument{rope: Empty()}
+		return &RopeDocument{rope: rope.Empty()}
 	}
 
 	if ropeDoc, ok := doc.(*RopeDocument); ok {
@@ -202,9 +203,9 @@ func (d *RopeDocument) IsBalanced() bool {
 }
 
 // Stats returns statistics about the document's rope structure.
-func (d *RopeDocument) Stats() *TreeStats {
+func (d *RopeDocument) Stats() *rope.TreeStats {
 	if d == nil || d.rope == nil {
-		return &TreeStats{}
+		return &rope.TreeStats{}
 	}
 	return d.rope.Stats()
 }
@@ -212,7 +213,7 @@ func (d *RopeDocument) Stats() *TreeStats {
 // Balance balances the underlying rope and returns a new concordia.
 func (d *RopeDocument) Balance() *RopeDocument {
 	if d == nil || d.rope == nil {
-		return &RopeDocument{rope: Empty()}
+		return &RopeDocument{rope: rope.Empty()}
 	}
 	return &RopeDocument{
 		rope: d.rope.Balance(),
@@ -222,7 +223,7 @@ func (d *RopeDocument) Balance() *RopeDocument {
 // Optimize optimizes the underlying rope and returns a new concordia.
 func (d *RopeDocument) Optimize() *RopeDocument {
 	if d == nil || d.rope == nil {
-		return &RopeDocument{rope: Empty()}
+		return &RopeDocument{rope: rope.Empty()}
 	}
 	return &RopeDocument{
 		rope: d.rope.Optimize(),
@@ -309,7 +310,7 @@ func (d *RopeDocument) LastIndex(substring string) int {
 
 // Empty creates an empty RopeDocument.
 func EmptyDocument() *RopeDocument {
-	return &RopeDocument{rope: Empty()}
+	return &RopeDocument{rope: rope.Empty()}
 }
 
 // FromDocument creates a RopeDocument from any Document implementation.
@@ -330,7 +331,7 @@ func CloneDocument(doc ot.Document) *RopeDocument {
 
 // MergeDocuments merges multiple documents into one RopeDocument.
 func MergeDocuments(docs ...ot.Document) *RopeDocument {
-	builder := NewBuilder()
+	builder := rope.NewBuilder()
 	for _, doc := range docs {
 		if doc != nil {
 			builder.Append(doc.String())
@@ -345,7 +346,7 @@ func JoinDocuments(docs []ot.Document, separator string) *RopeDocument {
 		return EmptyDocument()
 	}
 
-	builder := NewBuilder()
+	builder := rope.NewBuilder()
 	for i, doc := range docs {
 		if doc != nil {
 			builder.Append(doc.String())
@@ -386,13 +387,13 @@ func FromRunes(runes []rune) *RopeDocument {
 
 // DocumentBuilder provides a convenient way to build a RopeDocument.
 type DocumentBuilder struct {
-	builder *RopeBuilder
+	builder *rope.RopeBuilder
 }
 
 // NewDocumentBuilder creates a new document builder.
 func NewDocumentBuilder() *DocumentBuilder {
 	return &DocumentBuilder{
-		builder: NewBuilder(),
+		builder: rope.NewBuilder(),
 	}
 }
 
