@@ -4,29 +4,66 @@ import (
 	"unicode"
 )
 
-// WordBoundary finds word boundaries in the concordia.
+// WordBoundary provides word boundary detection for text operations.
+// This is useful for text editing features like word selection, navigation,
+// and word-by-word processing.
+//
+// Example:
+//
+//	wb := rope.NewWordBoundary(r)
+//	start := wb.PrevWordStart(pos)
+//	end := wb.NextWordEnd(pos)
+//	word, _ := r.Slice(start, end)
 type WordBoundary struct {
 	rope *Rope
 }
 
-// NewWordBoundary creates a new word boundary finder.
+// NewWordBoundary creates a new word boundary finder for the given rope.
 func NewWordBoundary(rope *Rope) *WordBoundary {
 	return &WordBoundary{rope: rope}
 }
 
 // IsWordChar returns true if the rune is a word character.
-// Word characters are: letters, digits, and underscore.
+// Word characters are: letters, digits, and underscore (as in \w in regex).
+//
+// Example:
+//
+//	wb := rope.NewWordBoundary(r)
+//	it := r.NewIterator()
+//	for it.Next() {
+//	    if wb.IsWordChar(it.Current()) {
+//	        fmt.Printf("%c is a word character\n", it.Current())
+//	    }
+//	}
 func (wb *WordBoundary) IsWordChar(r rune) bool {
 	return unicode.IsLetter(r) || unicode.IsDigit(r) || r == '_'
 }
 
 // IsWhitespace returns true if the rune is whitespace.
+// This includes spaces, tabs, newlines, and other Unicode whitespace.
+//
+// Example:
+//
+//	wb := rope.NewWordBoundary(r)
+//	it := r.NewIterator()
+//	for it.Next() {
+//	    if wb.IsWhitespace(it.Current()) {
+//	        fmt.Printf("Found whitespace at position %d\n", it.Position())
+//	    }
+//	}
 func (wb *WordBoundary) IsWhitespace(r rune) bool {
 	return unicode.IsSpace(r)
 }
 
 // PrevWordStart finds the start of the word before the given position.
 // Returns the position of the first character of the previous word.
+// If pos is in the middle of a word, returns the start of that word.
+// If no word is found, returns 0.
+//
+// Example:
+//
+//	wb := rope.NewWordBoundary(r)
+//	start := wb.PrevWordStart(10) // Find word start before position 10
 func (wb *WordBoundary) PrevWordStart(pos int) int {
 	if pos <= 0 {
 		return 0
@@ -67,6 +104,13 @@ func (wb *WordBoundary) PrevWordStart(pos int) int {
 
 // NextWordStart finds the start of the word after the given position.
 // Returns the position of the first character of the next word.
+// If pos is in the middle of a word, returns the start of the next word.
+// If no word is found, returns the length of the rope.
+//
+// Example:
+//
+//	wb := rope.NewWordBoundary(r)
+//	start := wb.NextWordStart(10) // Find word start after position 10
 func (wb *WordBoundary) NextWordStart(pos int) int {
 	if pos < 0 {
 		return 0
@@ -101,6 +145,12 @@ func (wb *WordBoundary) NextWordStart(pos int) int {
 
 // PrevWordEnd finds the end of the word before the given position.
 // Returns the position after the last character of the previous word.
+// If pos is in the middle of a word, returns the end of that word.
+//
+// Example:
+//
+//	wb := rope.NewWordBoundary(r)
+//	end := wb.PrevWordEnd(10) // Find word end before position 10
 func (wb *WordBoundary) PrevWordEnd(pos int) int {
 	if pos <= 0 {
 		return 0
@@ -128,6 +178,12 @@ func (wb *WordBoundary) PrevWordEnd(pos int) int {
 
 // NextWordEnd finds the end of the word after the given position.
 // Returns the position after the last character of the next word.
+// If pos is in the middle of a word, returns the end of that word.
+//
+// Example:
+//
+//	wb := rope.NewWordBoundary(r)
+//	end := wb.NextWordEnd(10) // Find word end after position 10
 func (wb *WordBoundary) NextWordEnd(pos int) int {
 	if pos < 0 {
 		return 0

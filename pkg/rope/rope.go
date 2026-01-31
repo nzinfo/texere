@@ -665,6 +665,13 @@ func (r *Rope) Runes() []rune {
 }
 
 // ForEach calls the given function for each rune in the rope.
+// This is useful for side-effect operations like printing or logging.
+//
+// Example:
+//
+//	r.ForEach(func(ch rune) {
+//	    fmt.Printf("%c\n", ch)
+//	})
 func (r *Rope) ForEach(f func(rune)) {
 	if r == nil || r.length == 0 {
 		return
@@ -677,6 +684,13 @@ func (r *Rope) ForEach(f func(rune)) {
 }
 
 // ForEachWithIndex calls the given function for each rune with its index.
+// The index is the character position (0-based).
+//
+// Example:
+//
+//	r.ForEachWithIndex(func(i int, ch rune) {
+//	    fmt.Printf("Position %d: %c\n", i, ch)
+//	})
 func (r *Rope) ForEachWithIndex(f func(int, rune)) {
 	if r == nil || r.length == 0 {
 		return
@@ -691,6 +705,16 @@ func (r *Rope) ForEachWithIndex(f func(int, rune)) {
 }
 
 // Map creates a new rope by applying the given function to each rune.
+// The original rope is unchanged.
+//
+// Example:
+//
+//	upper := r.Map(func(ch rune) rune {
+//	    if ch >= 'a' && ch <= 'z' {
+//	        return ch - 32 // Convert to uppercase
+//	    }
+//	    return ch
+//	})
 func (r *Rope) Map(f func(rune) rune) *Rope {
 	if r == nil || r.length == 0 {
 		return r
@@ -705,6 +729,13 @@ func (r *Rope) Map(f func(rune) rune) *Rope {
 }
 
 // Filter creates a new rope containing only runes for which f returns true.
+// The original rope is unchanged.
+//
+// Example:
+//
+//	vowels := r.Filter(func(ch rune) bool {
+//	    return ch == 'a' || ch == 'e' || ch == 'i' || ch == 'o' || ch == 'u'
+//	})
 func (r *Rope) Filter(f func(rune) bool) *Rope {
 	if r == nil || r.length == 0 {
 		return r
@@ -722,6 +753,12 @@ func (r *Rope) Filter(f func(rune) bool) *Rope {
 }
 
 // Count returns the number of runes for which f returns true.
+//
+// Example:
+//
+//	digitCount := r.Count(func(ch rune) bool {
+//	    return ch >= '0' && ch <= '9'
+//	})
 func (r *Rope) Count(f func(rune) bool) int {
 	if r == nil || r.length == 0 {
 		return 0
@@ -740,17 +777,41 @@ func (r *Rope) Count(f func(rune) bool) int {
 // ========== Utility Functions ==========
 
 // Lines splits the rope into lines, preserving line endings.
+// Each line includes its trailing newline character (except possibly the last line).
+// Returns a slice of strings, one per line.
+//
+// Example:
+//
+//	lines := r.Lines()
+//	for i, line := range lines {
+//	    fmt.Printf("Line %d: %q", i, line)
+//	}
 func (r *Rope) Lines() []string {
 	content := r.String()
 	return strings.SplitAfter(content, "\n")
 }
 
 // Contains reports whether the rope contains the given substring.
+// This is a simple substring search, not a grapheme-aware search.
+//
+// Example:
+//
+//	if r.Contains("Hello") {
+//	    fmt.Println("Found 'Hello'")
+//	}
 func (r *Rope) Contains(substring string) bool {
 	return strings.Contains(r.String(), substring)
 }
 
 // Index returns the first character position of substring, or -1 if not found.
+// The position is in characters (not bytes).
+//
+// Example:
+//
+//	pos := r.Index("World")
+//	if pos >= 0 {
+//	    fmt.Printf("Found 'World' at position %d\n", pos)
+//	}
 func (r *Rope) Index(substring string) int {
 	// Convert byte index to character index
 	byteIdx := strings.Index(r.String(), substring)
@@ -761,6 +822,14 @@ func (r *Rope) Index(substring string) int {
 }
 
 // LastIndex returns the last character position of substring, or -1 if not found.
+// The position is in characters (not bytes).
+//
+// Example:
+//
+//	pos := r.LastIndex("\n")
+//	if pos >= 0 {
+//	    fmt.Printf("Last newline at position %d\n", pos)
+//	}
 func (r *Rope) LastIndex(substring string) int {
 	// Convert byte index to character index
 	byteIdx := strings.LastIndex(r.String(), substring)
@@ -772,11 +841,26 @@ func (r *Rope) LastIndex(substring string) int {
 
 // Compare compares two ropes lexicographically.
 // Returns -1 if r < other, 0 if r == other, 1 if r > other.
+// This uses standard lexicographic string comparison.
+//
+// Example:
+//
+//	result := r1.Compare(r2)
+//	if result < 0 {
+//	    fmt.Println("r1 comes before r2")
+//	}
 func (r *Rope) Compare(other *Rope) int {
 	return strings.Compare(r.String(), other.String())
 }
 
 // Equals reports whether two ropes have identical content.
+// This is a more readable alternative to Compare(r, other) == 0.
+//
+// Example:
+//
+//	if r1.Equals(r2) {
+//	    fmt.Println("The ropes are identical")
+//	}
 func (r *Rope) Equals(other *Rope) bool {
 	return r.String() == other.String()
 }
