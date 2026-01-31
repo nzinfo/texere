@@ -3,7 +3,20 @@
     "allow": [
       "Bash(git worktree:*)",
       "Bash(if exist:*)",
-      "Bash(git checkout:*)"
+      "Bash(git checkout:*)",
+      "Bash(go build:*)",
+      "Bash(grep:*)",
+      "Bash(ls:*)",
+      "Bash(do if grep -q \"github.com/coreseekdev/texere/pkg/ot\" \"$f\")",
+      "Bash(then echo \"✅ $f\")",
+      "Bash(else echo \"❌ $f\")",
+      "Bash(fi:*)",
+      "Bash(do if ! grep -q \"github.com/coreseekdev/texere/pkg/ot\" \"$f\")",
+      "Bash(then echo \"$f\")",
+      "Bash(while read f)",
+      "Bash(echo:*)",
+      "Bash(go test:*)",
+      "Bash(git add:*)"
     ]
   }
 }

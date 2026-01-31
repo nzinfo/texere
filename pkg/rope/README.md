@@ -1,403 +1,181 @@
-# Rope Package for Go
+# Rope 包 - 高效文本数据结构
 
-[![Go Reference](https://pkg.go.dev/badge/github.com/texere-rope/pkg/rope.svg)](https://pkg.go.dev/github.com/texere-rope/pkg/rope)
+[![Go Documentation](https://pkg.go.dev/badge/github.com/coreseekdev/texere/pkg/rope.svg)](https://pkg.go.dev/github.com/coreseekdev/texere/pkg/rope)
 
-A high-performance Rope data structure implementation in Go for efficient large text editing operations.
+Rope 是一种专为大型文本编辑设计的高效字符串数据结构。它使用平衡二叉树（B-tree）来表示字符串，针对频繁插入、删除操作进行了优化。
 
-## Overview
+## 特性
 
-A Rope is a balanced binary tree (B-tree) representation of a string, optimized for efficient insertions, deletions, and other operations on large texts. Unlike standard strings, ropes provide O(log n) complexity for modification operations instead of O(n).
+- **不可变性 (Immutable)**: 所有操作返回新的 Rope，原对象保持不变
+- **高效性**: 插入、删除、切片操作均为 O(log n) 复杂度
+- **内存优化**: 树结构最小化内存拷贝
+- **线程安全**: 不可变特性天然支持并发访问
+- **Unicode 支持**: 完整支持 UTF-8、字素簇、单词边界
 
-## Features
-
-- **Immutable**: All operations return new Ropes, originals remain unchanged
-- **Efficient**: O(log n) for insert/delete/slice operations
-- **Memory Optimized**: Minimal copying due to tree structure
-- **UTF-8 Support**: Full Unicode support with character-based indexing
-- **Thread-Safe**: Immutable structure enables safe concurrent reads
-- **Editor-Friendly**: Rich line-based operations for text editing
-
-## Installation
-
-```bash
-go get github.com/texere-rope/pkg/rope
-```
-
-## Quick Start
+## 快速开始
 
 ```go
-package main
+import "github.com/coreseekdev/texere/pkg/rope"
 
-import (
-    "fmt"
-    "github.com/texere-rope/pkg/rope"
-)
+// 创建 Rope
+r := rope.New("Hello, World!")
 
-func main() {
-    // Create a rope from a string
-    r := rope.New("Hello World")
+// 插入文本
+r = r.Insert(13, " Have a nice day!")
 
-    // Query operations
-    fmt.Println(r.Length())   // 11
-    fmt.Println(r.String())   // Hello World
-    fmt.Println(r.Slice(0, 5)) // Hello
+// 删除文本
+r = r.Delete(0, 7)
 
-    // Insert text (immutable - returns new rope)
-    r2 := r.Insert(5, " Beautiful")
-    fmt.Println(r2.String())  // Hello Beautiful World
-    fmt.Println(r.String())    // Original unchanged: Hello World
-
-    // Delete text
-    r3 := r.Delete(5, 11)
-    fmt.Println(r3.String())  // Hello
-
-    // Concatenate ropes
-    r4 := r.Concat(rope.New(" Again"))
-    fmt.Println(r4.String())  // Hello World Again
-}
+// 获取内容
+fmt.Println(r.String()) // "World! Have a nice day!"
 ```
 
-## Core Concepts
+## 目录结构
 
-### Rope Structure
+### 核心文件
 
-A rope is a tree where:
-- **Leaf nodes** contain actual text
-- **Internal nodes** maintain balance and cache subtree information
+| 文件 | 说明 |
+|------|------|
+| `rope.go` | 核心 Rope 数据结构和基本操作 |
+| `changeset.go` | 内部编辑表示 (ChangeSet, Operation) |
+| `edits.go` | 编辑操作类型 (EditOperation, Deletion) |
+| `selection.go` | 选择范围管理 |
+| `composition.go` | ChangeSet 组合逻辑 |
+| `position.go` | 光标位置映射和关联 |
 
-```
-        [Internal: leftLen=5, leftSize=5]
-             /                    \
-    [Leaf: "Hello"]          [Leaf: " World"]
-```
+### 操作实现
 
-### Immutability
+| 文件 | 说明 |
+|------|------|
+| `char_ops.go` | 字符操作 |
+| `chunk_ops.go` | 块操作 |
+| `line_ops.go` | 行操作 |
 
-All operations return new rope instances:
+### 迭代器
 
-```go
-r1 := rope.New("Hello")
-r2 := r1.Insert(5, " World")
-// r1 is still "Hello"
-// r2 is "Hello World"
-```
+| 文件 | 说明 |
+|------|------|
+| `iterator.go` | 字符迭代器 (Rune Iterator) |
+| `bytes_iter.go` | 字节迭代器 (Bytes Iterator) |
+| `runes_iter.go` | Rune 迭代器 |
+| `reverse_iter.go` | 反向迭代器 |
 
-### Character vs Byte Indexing
+### 优化
 
-Ropes use **character positions** (Unicode code points), not byte positions:
+| 文件 | 说明 |
+|------|------|
+| `cow_optimization.go` | 写时复制优化 |
+| `insert_optimized.go` | 插入优化 |
+| `micro_optimizations.go` | 微优化 |
+| `byte_cache.go` | 字节位置缓存 |
+| `pools.go` | 对象池 |
+| `hash.go` | 哈希工具 |
 
-```go
-r := rope.New("Hello 世界")
-r.Length()     // 8 characters (5 + 1 + 2)
-r.Size()       // 12 bytes (5 + 1 + 6)
-r.CharAt(6)    // '世' (7th character)
-```
+### 文本处理
 
-## API Reference
+| 文件 | 说明 |
+|------|------|
+| `graphemes.go` | 字素簇处理 |
+| `word_boundary.go` | 单词边界检测 |
+| `utf16.go` | UTF-16 支持 |
+| `crlf.go` | 换行符处理 |
 
-### Constructors
+### 工具
 
-```go
-// Create from string
-r := rope.New("Hello World")
+| 文件 | 说明 |
+|------|------|
+| `builder.go` | Rope 构建器 |
+| `str_utils.go` | 字符串工具 |
+| `balance.go` | 树平衡 |
+| `rope_concat.go` | 拼接操作 |
+| `rope_split.go` | 分割操作 |
+| `rope_io.go` | I/O 操作 |
 
-// Create empty rope
-r := rope.Empty()
+### 测试文件
 
-// Create from builder
-b := rope.NewBuilder()
-b.Append("Hello")
-b.Append(" World")
-r := b.Build()
-```
+| 文件 | 说明 |
+|------|------|
+| `core_test.go` | 核心功能测试 |
+| `property_test.go` | 基于属性的测试 |
+| `tree_integrity_test.go` | 树完整性测试 |
+| `chunk_test.go` | 块操作测试 |
+| `*_test.go` | 其他功能测试 |
+| `*_bench_test.go` | 基准测试 |
 
-### Query Operations
+### 文档
 
-```go
-r.Length()              // Number of characters
-r.Size()                // Number of bytes
-r.String()              // Full string
-r.Bytes()               // Full byte slice
-r.Slice(start, end)     // Substring (character positions)
-r.CharAt(pos)           // Character at position
-r.ByteAt(pos)           // Byte at position
-r.Contains(substring)   // Check if contains substring
-r.Index(substring)      // Find first occurrence
-```
+| 文件 | 说明 |
+|------|------|
+| `README.md` | 本文件 |
+| `USAGE.md` | 详细使用指南 |
+| `doc/FILE_CLASSIFICATION.md` | 文件分类说明 |
+| `doc/OPTIMIZATION_EVALUATION.md` | 优化评估 |
 
-### Modification Operations
+## 适用场景
 
-```go
-// Insert text at position
-r2 := r.Insert(pos, text)
+### 适合使用 Rope 的场景
 
-// Delete range
-r2 := r.Delete(start, end)
+- 大型文本编辑器（如 Helix、Kakoune）
+- 需要频繁插入/删除的文本处理
+- 需要高效撤销/重做功能的应用
+- 多线程文本处理场景
+- 需要频繁切片操作的文本
 
-// Replace range with text
-r2 := r.Replace(start, end, text)
+### 不适合使用 Rope 的场景
 
-// Split at position
-left, right := r.Split(pos)
+- 小型字符串（Go 原生 `string` 更高效）
+- 只读文本（无需 Rope 的复杂结构）
+- 频繁转换为字符串的场景
 
-// Concatenate ropes
-r2 := r.Concat(other)
-```
+## 性能
 
-### Iterator
+基于当前实现的性能数据（Go 1.23）：
 
-```go
-it := r.NewIterator()
+| 操作 | 复杂度 | 说明 |
+|------|--------|------|
+| `Length()` | O(1) | 缓存的长度 |
+| `Slice()` | O(log n) | 需要遍历树 |
+| `Insert()` | O(log n) | 创建新节点 |
+| `Delete()` | O(log n) | 创建新节点 |
+| `String()` | O(n) | 需要遍历所有节点 |
+| `Iterator` | O(1) 每字符 | 块迭代器 |
 
-// Iterate character by character
-for it.Next() {
-    ch := it.Current()
-    fmt.Println(ch)
-}
+详细性能数据请参考 `USAGE.md` 中的性能基准章节。
 
-// Seek to position
-it.Seek(10)
+## 架构设计
 
-// Peek without advancing
-ch, ok := it.Peek()
-
-// Collect remaining
-remaining := it.Collect()
-```
-
-### Line Operations
-
-```go
-// Get line info
-lineCount := r.LineCount()
-line := r.Line(0)              // Get line text
-lineStart := r.LineStart(0)    // Line start position
-lineEnd := r.LineEnd(0)        // Line end position
-
-// Modify lines
-r2 := r.InsertLine(0, "Text")
-r2 := r.DeleteLine(0)
-r2 := r.ReplaceLine(0, "New Text")
-
-// Line editor operations
-pos := r.PositionAtLineCol(line, col)
-line := r.LineAtChar(pos)
-col := r.ColumnAtChar(pos)
-```
-
-### Builder Pattern
-
-```go
-b := rope.NewBuilder()
-b.Append("Hello")
-b.Append(" ")
-b.Insert(5, "Beautiful")
-b.Delete(0, 6)
-r := b.Build()
-
-// Builder can be reused
-b.Reset()
-b.Append("New text")
-r2 := b.Build()
-```
-
-### Balancing
-
-```go
-// Check if balanced
-isBalanced := r.IsBalanced()
-
-// Balance the rope
-r2 := r.Balance()
-
-// Optimize structure
-r2 := r.Optimize()
-
-// Get statistics
-stats := r.Stats()
-fmt.Printf("Depth: %d, Nodes: %d\n", stats.Depth, stats.NodeCount)
-```
-
-## Document Interface Integration
-
-The rope implements the `Document` interface for use with OT (Operational Transformation):
-
-```go
-import "github.com/texere-rope/pkg/document"
-
-// Create a document
-doc := rope.NewRopeDocument("Hello World")
-
-// Use as Document interface
-var d document.Document = doc
-length := d.Length()
-text := d.Slice(0, 5)
-
-// Convert back to RopeDocument
-ropeDoc := rope.AsRopeDocument(d)
-r := ropeDoc.Rope()
-```
-
-## Performance
-
-### Complexity
-
-| Operation | Time Complexity | Space Complexity |
-|-----------|----------------|------------------|
-| New       | O(n)           | O(n)             |
-| Length    | O(1)           | O(1)             |
-| Slice     | O(log n)       | O(k)             |
-| Insert    | O(log n)       | O(log n)         |
-| Delete    | O(log n)       | O(log n)         |
-| Concat    | O(1)           | O(1)             |
-| Split     | O(log n)       | O(log n)         |
-
-### Benchmarks
+### 依赖关系
 
 ```
-BenchmarkRope_New-8                 10000    123456 ns/op
-BenchmarkRope_Insert_Small-8       100000      9876 ns/op
-BenchmarkRope_Delete_Small-8       100000      8765 ns/op
-BenchmarkRope_Slice-8              200000      5432 ns/op
-BenchmarkRope_Concat-8             500000      2345 ns/op
-BenchmarkRope_Iterator-8           300000      4567 ns/op
-BenchmarkBuilder_Append-8          200000      3456 ns/op
+                    ┌──────────────┐
+                    │  concordia   │  (OT 集成层)
+                    │   包         │
+                    └──────┬───────┘
+                           │ 依赖 ot 包
+                           ▼
+                    ┌────────────────┐
+                    │   rope 包      │  (核心层)
+                    │   (无 ot 依赖)  │
+                    └────────────────┘
 ```
 
-### When to Use Rope
+### 核心概念
 
-**Use Rope when:**
-- Working with large files (> 100KB)
-- Frequent insertions/deletions
-- Need efficient undo/redo (immutable)
-- Building a text editor
-- Collaborative editing (with OT)
+1. **不可变性**: 所有操作返回新 Rope，原 Rope 保持不变
+2. **树结构**: 使用平衡二叉树（B-tree）存储文本
+3. **叶子节点**: 包含实际文本内容
+4. **内部节点**: 包含左右子树和缓存信息
 
-**Use string when:**
-- Small texts (< 10KB)
-- Few modifications
-- Simplicity is preferred
+## 更多资源
 
-## Examples
+- [USAGE.md](USAGE.md) - 详细使用指南和示例
+- [doc/FILE_CLASSIFICATION.md](doc/FILE_CLASSIFICATION.md) - 文件分类和依赖说明
+- [GoDoc 文档](https://pkg.go.dev/github.com/coreseekdev/texere/pkg/rope)
 
-### Text Editor
+## 贡献
 
-```go
-// Create document
-doc := rope.NewRopeDocument("Line 1\nLine 2\nLine 3")
+欢迎提交 Issue 和 Pull Request！
 
-// Insert at line/column
-doc = doc.InsertAtLineCol(1, 6, " Hello")
+## 许可证
 
-// Delete line
-doc = doc.DeleteLine(2)
-
-// Get current line
-line := doc.Rope().Line(1)
-```
-
-### Log Processing
-
-```go
-// Build large log from multiple sources
-builder := rope.NewBuilder()
-for _, entry := range logEntries {
-    builder.AppendLine(entry)
-}
-log := builder.Build()
-
-// Process line by line
-it := log.LinesIterator()
-for it.Next() {
-    line := it.Current()
-    processLine(line)
-}
-```
-
-### Efficient Concatenation
-
-```go
-// Concatenate many strings efficiently
-builder := rope.NewBuilder()
-for _, chunk := range chunks {
-    builder.Append(chunk)
-}
-result := builder.Build()
-```
-
-## Testing
-
-Run tests:
-
-```bash
-# Run all tests
-go test ./pkg/rope/...
-
-# Run with coverage
-go test ./pkg/rope/... -cover
-
-# Run benchmarks
-go test ./pkg/rope/... -bench=.
-
-# Run specific test
-go test ./pkg/rope/... -run TestInsert
-```
-
-## Implementation Details
-
-### Tree Structure
-
-- **Leaf Node**: Stores actual text content
-- **Internal Node**: Maintains balance, caches subtree info
-- **Balance Strategy**: B-tree with configurable parameters
-
-### UTF-8 Support
-
-- All indices are character-based (not byte-based)
-- Automatic UTF-8 validation
-- Efficient Unicode handling
-
-### Memory Management
-
-- Immutable structure enables sharing
-- Minimal copying through tree sharing
-- Optional compaction for memory optimization
-
-## Contributing
-
-Contributions are welcome! Please ensure:
-
-1. All tests pass: `go test ./pkg/rope/...`
-2. Code is formatted: `go fmt ./pkg/rope/...`
-3. Add tests for new features
-4. Update documentation
-
-## License
-
-[Your License Here]
-
-## Acknowledgments
-
-This library is heavily inspired by and based on the design of the excellent **[ropey](https://github.com/cessen/ropey)** crate for Rust by **[Cessen](https://github.com/cessen)**.
-
-The ropey crate provides:
-- The core balanced binary tree algorithm
-- B-tree optimization strategies
-- Efficient UTF-8 handling patterns
-- The overall API design philosophy
-
-This Go implementation adapts those concepts for Go's idioms while maintaining the performance characteristics that make ropey excellent for text editing.
-
-### Similar Projects
-
-- **[ropey (Rust)](https://github.com/cessen/ropey)** - Original inspiration, used in the Helix editor
-- **[rope (C++)](https://github.com/zeux/rope)** - C++ implementation used in the Neovim editor
-- **[Rope (Swift)](https://github.com/apple/swift-rope)** - Swift implementation by Apple
-
-## References
-
-- **[Ropes: an Alternative to Strings](https://www.cs.rit.edu/~ats/books/ooc/html/ooc.html)** - Boehm, Atkinson, and Plass (1995)
-  - Original paper introducing the Rope data structure
-- **[Ropey Documentation](https://docs.rs/ropey/)** - Rust crate that inspired this implementation
-- **[Xi-Editor Rope](https://github.com/google/xi-editor)** - Google's editor implementation
-- **[USAGE.md](USAGE.md)** - Comprehensive Chinese usage guide (中文使用指南)
+MIT License
